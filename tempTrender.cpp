@@ -18,22 +18,28 @@ tempTrender::tempTrender(string filePath) {
 	cout << "You should probably store this information in a member variable of the class. Good luck with the project! :)" << endl;
 }
 
+// Reads Csv file(stored in its_filePath) and filters the data.
+
 void tempTrender::readFile()
 {	
 	string helpString; // help variable
 	
-	// open input file
+	// open input and output file
 	ifstream infile(its_filePath.c_str());
 	string fileHelpString = its_filePath.substr(its_filePath.find("_", 0), its_filePath.find(".", 0));
 	fileHelpString.erase(fileHelpString.find("csv"));
 	fileHelpString = string("mT" + fileHelpString + "dat");
-	ofstream outfile(fileHelpString.c_str());		
+	ofstream outfile(fileHelpString.c_str());
+	
+	// read infile and skip the first few useless lines		
 	while(getline(infile,helpString)) {
 		
 		if (helpString == "Datum;Tid (UTC);Lufttemperatur;Kvalitet;;Tidsutsnitt:") {
 					break;
 		}	
 	}
+	
+	// read and store the data in output file only of good data quality (i,e "G" values)
 	
 	while(getline(infile,helpString)) {
 		int i = 0;
@@ -60,14 +66,22 @@ void tempTrender::readFile()
 	}
 }
 
+
+// Makes Graph for the Mean Temperature per day over all years
+
 void tempTrender::tempPerDay() {
+	
+	// storing temperatures and days in two vectors
+	
 	vector<double> temperatures = vectorFunction();
 	vector<double> days;
-	cout << temperatures.size() << endl;
+	// cout << temperatures.size() << endl;
 	for(size_t i = 0 ; i < temperatures.size(); i++) {
 		days.push_back(i);
 	}
 	cout << days.size() << endl;
+	
+	//creating canvas
 	
 	TCanvas *c1 = new TCanvas("c1","Mean Temperatures",500,20,1000,500);
 
@@ -76,6 +90,8 @@ void tempTrender::tempPerDay() {
     
     double* daysA = &days[0];
     double* temperaturesA = &temperatures[0];
+   
+   // Plotting the days and temperature
    
     TGraph *gr = new TGraph(int(temperatures.size()),daysA,temperaturesA);
     gr->SetLineColor(2);
