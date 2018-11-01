@@ -6,16 +6,15 @@
 
 // Reads Csv file(stored in its_filePath) and filters the data.
 
-void readFile(string &filePath, string &begin, string &end);
+void readFile(string filePath, string begin, string end);
 
-void readFile(string &filePath, string &begin, string &end) // begin and end marks interval on the form yyyy(required)-mm(optional)-dd(optional) - yyyy(required, not including end year)-mm(optional)-dd(optional)
+void readFile(string filePath, string begin, string end) // begin and end marks interval on the form yyyy(required)-mm(optional)-dd(optional) - yyyy(required, not including end year)-mm(optional)-dd(optional)
 {	
 	string helpString; // help variable
 	
 	// open input and output file
 	ifstream infile(filePath.c_str());
-	string fileHelpString = filePath.substr(filePath.find("_", 0), filePath.find(".", 0));
-	fileHelpString.erase(fileHelpString.find("_"));
+	string fileHelpString = filePath.substr(filePath.find('_', 0)+1, filePath.find('.', 0)-4);
 	fileHelpString.erase(fileHelpString.find("csv"));
 	fileHelpString = string("mTr" + fileHelpString + "dat");
 	ofstream outfile(fileHelpString.c_str());
@@ -39,7 +38,7 @@ void readFile(string &filePath, string &begin, string &end) // begin and end mar
 		}
 		if (isInInterval) {
 			int i = 0;
-			for( int j = 0; j < helpString.size(); j++) {
+			for(unsigned int j = 0; j < helpString.size(); j++) {
 				if( helpString.at(j) == ';') {
 					helpString.at(j) = ' ';
 					i++;
