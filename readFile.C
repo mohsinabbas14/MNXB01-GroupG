@@ -14,8 +14,9 @@ void readFile(string filePath, string begin, string end) // begin and end marks 
 	
 	// open input and output file
 	ifstream infile(filePath.c_str());
-	string fileHelpString = filePath.substr(filePath.find('_', 0)+1, filePath.find('.', 0)-4);
-	fileHelpString.erase(fileHelpString.find("csv"));
+	string fileHelpString = filePath.substr(filePath.find('_', 0)+1, filePath.find('.', 0)-filePath.find('_', 0));
+
+	cout << fileHelpString << endl;
 	fileHelpString = string("mTr" + fileHelpString + "dat");
 	ofstream outfile(fileHelpString.c_str());
 		
@@ -51,10 +52,9 @@ void readFile(string filePath, string begin, string end) // begin and end marks 
 			if(helpString.find('Y') != string::npos) {
 				continue;
 			}
-			string helpString1 = helpString.substr(0, helpString.find(" ", 0));
-			string helpString2 = helpString.substr(helpString.find(" ", 1), helpString.find(" ", 1));
-			string helpString3 = helpString.substr(helpString.find(" ", 11), size_t(12));
-			helpString3.erase(helpString3.find(" G"));
+			string helpString1 = helpString.substr(0, 10);
+			string helpString2 = helpString.substr(helpString.find(" ", 0), 8);
+			string helpString3 = helpString.substr(helpString.find(" ", 19), helpString.find(" G", 20) - helpString3.find(" ", 19));
 			//cout << helpString1 << " " << helpString2 << " " << helpString3 << " " << endl;
 		
 			outfile << helpString1 << " " << helpString2 << " " << helpString3 << endl;
