@@ -16,6 +16,12 @@
 #include <TH3.h>
 
 // Makes Graph for the Mean Temperature per day over all years
+	// Helpfunction
+
+double Gaussian(double* x, double* par) {
+	return par[0]*exp(-0.5*(x[0]*x[0] - 2*x[0]*par[1] + par[1]*par[1])/(par[2]*par[2]));
+}
+
 
 void plot(string filePath){
 	
@@ -109,6 +115,7 @@ void plot(string filePath){
 		c1->SetFillColor(42);
 		c1->SetGrid();
 		
+		
 		// create 1d function that we will use to fit our generated data to ensure
 		// that the generation works
 		TF1* fitFunc = new TF1("Gaussian", Gaussian, 1, 366, 3);
@@ -116,12 +123,12 @@ void plot(string filePath){
 		highTemp->Fit(fitFunc);
 		lowTemp->Fit(fitFunc);
 		
-		cout << "Its uncertainty is " << func->GetParError(1) << endl;
+		cout << "Its uncertainty is " << fitFunc->GetParError(1) << endl;
 		TLegend *leg = new TLegend(0.65, 0.75, 0.92, 0.92, "", "NDC");
 		leg->SetFillStyle(0); //Hollow fill (transparent)
 		leg->SetBorderSize(0); //Get rid of the border
-		leg->AddEntry(hist, "", "F"); //Use object title, draw fill
-		leg->AddEntry(anotherHist, "A title", "F"); //Use custom title
+		leg->AddEntry(highTemp, "", "F"); //Use object title, draw fill
+		leg->AddEntry(lowTemp, "A title", "F"); //Use custom title
 		highTemp->Draw();
 		lowTemp->Draw("SAME"); //Draw on top of the existing plot
 		leg->Draw(); //Legends are automatically drawn with "SAME"
@@ -169,18 +176,18 @@ void plot(string filePath){
 		
 		// Create Histogram
 		
-		TH3D* highTemp= new TH3D("highTemp", "High Temperature;Year;Temp °C",365,0,365,1,0,40,years.size(),years[0],years[0]+years.size());
+		TH3D* highTempHist= new TH3D("highTemp", "High Temperature;Year;Temp °C",365,0,365,1,0,40,years.size(),years[0],years[0]+years.size());
 		//highTemp->Sumw2();
 		//highTemp->SetMinimum(0);
 	
-		TH3D* lowTemp= new TH3D("lowTemp", "Low Temperature;Year;Temp °C",365,0,365,1,-30,0,years.size(),years[0],years[0]+years.size());
+		TH3D* lowTempHist= new TH3D("lowTemp", "Low Temperature;Year;Temp °C",365,0,365,1,-30,0,years.size(),years[0],years[0]+years.size());
 		//lowTemp->Sumw2();
 		//lowTemp->SetMinimum(0);
 		
 		for (unsigned int i=0; i <years.size(); i++){
 			
-			highTemp->Fill(days[i],highTemperatures[i],years[i]);
-			lowTemp->Fill(days[i],lowTemperatures[i],years[i]);
+			highTempHist->Fill(days[i],highTemperatures[i],years[i]);
+			lowTempHist->Fill(days[i],lowTemperatures[i],years[i]);
 			
 		}
 	
@@ -191,8 +198,8 @@ void plot(string filePath){
 		c1->SetFillColor(42);
 		c1->SetGrid();
     
-		highTemp->Draw();
-		lowTemp->Draw("same");
+		highTempHist->Draw();
+		lowTempHist->Draw("same");
 	
 		// Save the canvas as a picture
 		c1->SaveAs("Highest_and_Lowest_Temepratues.jpg");
@@ -202,10 +209,7 @@ void plot(string filePath){
 		
 		cout << "Wrong File Name" << endl;
 	}
+	
 }
 
-// Helpfunction
-double Gaussian(double* x, double* par) {
-	return par[0]*exp(-0.5*(x[0]*x[0] - 2*x[0]*par[1] + par[1]*par[1])/(par[2]*par[2]));
-}
 
