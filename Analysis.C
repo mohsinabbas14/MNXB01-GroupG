@@ -133,7 +133,6 @@ string int_to_str(Int_t num) {
 }
 
 
-
 // Status: See if compile in ROOT
 // Convert string to Int_t 
 Int_t str_to_int(string str) {
@@ -142,8 +141,6 @@ Int_t str_to_int(string str) {
   ss >> num;
   return num;
 }
-
-
 
 // Status: See if compile in ROOT
 //function will return total number of days
@@ -164,7 +161,6 @@ Int_t getNumberOfDaysInMonth(Int_t month, Int_t year)
   else 		
     return 30;
 } 
-
 
 
 // Status: See if compile in ROOT
@@ -472,9 +468,10 @@ Int_t calcHistfT(string dir, vector<string> &sameJob, vector< vector< vector<Dou
 
 
 
-// Status: Not done
-// argv[1]: city. (X for no) 
-// argv[2]: directory
+// Status: See if compile in ROOT
+// argv[1]: histogram type.
+// argv[2]: city. (X for not needed) 
+// argv[3]: directory
 Int_t Analysis(char* argv[]) { 
 
   string type;
@@ -501,68 +498,64 @@ Int_t Analysis(char* argv[]) {
   histTypes.push_back("lT");
   histTypes.push_back("fT");
 
-  // Saves all prefix and pairs them with datafiles
-  vector< vector<string> > sameJobs(3, vector<string>()); // mT, lT and fT
+  // Saves all the datafiles with the given histogram type.
+  vector<string> sameJobs; // mT, lT and fT
 
   // Goes through "files", and returns datafiles (mT/lT/fT) with the given prefix.  
-  for (unsigned Int_t ifile = 0; ifile < files.size(); ++ifile) {
-
+  for (unsigned Int_t ifile = 0; ifile < files.size(); ++ifile) 
     // Find all data files as they are the only ones that begins with mT, lT or fT.
     if(files[ifile].at(2) == 'R') // Only use files that have been read.
-      if(files[ifile].at(0) == 'm' || files[ifile].at(0) == 'l'|| files[ifile].at(0) == 'f') { 
+      if(files[ifile].at(0) == 'X' && files[ifile].at(1) == 'X') { // Only specific datafile names. 
 
-	// Find all prefixes of data files.        012345678901
-	string city = files.at(ifile);      // i.e. mTRXXXXX.dat
-	city = city.substr(3,city.size()-4);  // i.e. XXXXX
+	// Check the city of data files.            01234567890
+	string city = files.at(ifile);      // i.e. XXRCity.dat
+	city = city.substr(3,city.size()-4);  // i.e. City
 
+	// If city given, skip any another city. 
 	if(givenCity != 'X') 
 	  if(city != givenCity) 
 	    continue; 
-    
+    	
+	// Add datafile-name to the sameJobs list. 
 	string filename = files.at(ifile);
-	if(files[ifile].at(0) == 'm')
-	  sameJobs[0].push_back(filename);
-	if(files[ifile].at(0) == 'l')
-	  sameJobs[1].push_back(filename);
-	if(files[ifile].at(0) == 'f')
-	  sameJobs[2].push_back(filename);
-
+	sameJobs.push_back(filename);
       }
-  }
+  
+    if(sameJobs.size() == 0) // If no data files exists. 
+      return 1; 
 
-  // PrInt_t for-loop 
-  for(Int_t i = 0; i < 3; ++i) { // mT, lT, fT  
-
-    if(sameJobs[i].size() == 0) // If no data files exists. 
-      continue; 
-
-    string fileName;
-    if(sameJobs[i][0].at(0) == 'mT') { 
-      ...
-    } else if(sameJobs[i][0].at(0) == 'lT') {
-      ...
-    } else if(sameJobs[i][0].at(0) == 'fT') {
-      ...
-    }
-
-    // x, y, err, sumWHist 
-    vector< vector<Double_t> > xyznewHist(4, vector< Double_t >()); 
+    // Lets call the columns x, y, z, w, x   
+    vector< vector<Double_t> > newHist(4, vector< Double_t >()); 
 
     // Assign new file new. 
-    string name = sameJobs[i][0].replace(2,1,"A"); // i.e. mTALundXX  
-    calcNewHistforxyz(dir, sameJobs[i], xyznewHist); 
-    fileName = dir + name;
+    string newfileName;
 
- 
-    ofstream ofsNewHist(fileName.c_str());
+    // Calculate the new hist, depending on histogram type. 
+     string name = sameJobs[0].replace(2,1,"A"); // i.e. XXACity.dat
+    if(sameJob[0].at(0) == 'mT') { 
+      name = sameJobs[0].replace(0,2,"Sweden"); // i.e. mTASweden.dat
+      calcNewHistmT(dir, sameJobs, newHist); 
+      newfileName = dir + name;
+    } else if(sameJob[0].at(0) == 'lT') {
+      name = sameJobs[0].replace(0,2,type); // i.e. lTACity.dat
+      calcNewHistlT(dir, sameJobs, newHist); 
+      newfileName = dir + name;
+    } else if(sameJob[0].at(0) == 'fT') {
+      name = sameJobs[0].replace(0,2,type); // i.e. fTACity.dat
+      calcNewHistfT(dir, sameJobs, newHist); 
+      newfileName = dir + name;
+    }
 
-    // For x, y and z-type files 
-    for( Int_t k = 0; k < xyznewHist[0].size(); ++k) { 
-      ofsNewHist << fixed << scientific << setprecision(6);
-      ofsNewHist<< xyznewHist[0][k]<<"  "<< xyznewHist[1][k]<<"  "
-		<< xyznewHist[2][k]<<"  "<< xyznewHist[3][k]<< endl;
+    // Create file
+    ofstream ofsNewHist(newfileName.c_str());
+
+    // Print the [column][line] data into file. 
+    for( Int_t k = 0; k < newHist[0].size(); ++k) { 
+      ofsNewHist << fixed << scientific << setprecision(6); // Unnecessary?
+      ofsNewHist<< newHist[0][k]<<"  "<< newHist[1][k]<<"  "
+		<< newHist[2][k]<<"  "<< newHist[3][k]<< endl;
     } // All subtitles	
-  }
+
   return 0; 
 }
 
