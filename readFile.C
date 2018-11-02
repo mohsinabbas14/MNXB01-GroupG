@@ -1,15 +1,36 @@
+/*
+ *     Authors: Frank Johansson & Mohsin Abbas 2018-11-02
+ *     Email:   nat13fjo@student.lu.se
+ *
+ * Description: 
+ *		Reads a csv file and writes the useful data to a new file
+ * 		with the name "xxr[City].dat"
+ *
+ * Methods:  
+ *
+ *     * readFile(string filePath, string begin, string end)
+ *       - Description:
+ *         * Reads the csv file, filters the data and writes the useful data to a new file
+ * 			 with the name "xxr[City].dat"
+ *       - Arguments needed: 
+ *          * string containing the full path of the csv files that is to be read
+ * 			* string containing the first date that is to be read on the form yyyy-mm-dd
+ *			* string containing the first date that is to NOT be read on the form yyyy-mm-dd
+ *       - Returns: 
+ *         * void
+ *		
+ *
+ */
+ 
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <string>
-// Authors: Frank Johansson & Mailk Mohsin 2018-10-30
-
-// Reads Csv file(stored in its_filePath) and filters the data.
 
 void readFile(string filePath, string begin, string end);
 
-void readFile(string filePath, string begin, string end) // begin and end marks interval on the form yyyy(required)-mm(optional)-dd(optional) - yyyy(required, not including end year)-mm(optional)-dd(optional)
-{	
+void readFile(string filePath, string begin, string end) {
+		
 	string helpString; // help variable
 	
 	// open input and output file
@@ -17,7 +38,7 @@ void readFile(string filePath, string begin, string end) // begin and end marks 
 	string fileHelpString = filePath.substr(filePath.find('_', 0)+1, filePath.find('.', 0)-filePath.find('_', 0));
 
 	cout << fileHelpString << endl;
-	fileHelpString = string("mTr" + fileHelpString + "dat");
+	fileHelpString = string("xxr" + fileHelpString + "dat");
 	ofstream outfile(fileHelpString.c_str());
 		
 	// read infile and skip the first few useless lines		
@@ -36,7 +57,7 @@ void readFile(string filePath, string begin, string end) // begin and end marks 
 		}
 		if(helpString.find(end) != string::npos) {
 			break;
-		}
+		}	
 		if (isInInterval) {
 			int i = 0;
 			for(unsigned int j = 0; j < helpString.size(); j++) {
@@ -58,6 +79,6 @@ void readFile(string filePath, string begin, string end) // begin and end marks 
 			//cout << helpString1 << " " << helpString2 << " " << helpString3 << " " << endl;
 		
 			outfile << helpString1 << " " << helpString2 << " " << helpString3 << endl;
-		}
+		}	
 	}
 }
