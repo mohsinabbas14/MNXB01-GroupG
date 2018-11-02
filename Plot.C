@@ -69,6 +69,9 @@ void plot(string filePath){
 		gr->Draw("ACP");
 	}
 	
+	
+	//  2-D Histogram for a given city and shows day of Highest amd lowest temperatures every year.
+	
 	else if (filePath.substr(0,1)== "hL"){
 		
 		ifstream inFile(filePath.c_str());
@@ -127,46 +130,57 @@ void plot(string filePath){
 		c1->SaveAs("highLow.jpg");
 		
 	}	
+	
+	
+	//  3-D Histogram for a given city and shows Highest amd lowest temperatures of a day over all years
 		
 	else if (filePath.substr(0,1)== "fT") {
 	
 		ifstream inFile(filePath.c_str());
-		// storing temperatures and days in two vectors	
-		double highTemperatures;
-		double lowTemperatures;
+		
+		// Creating vectors
+		vector<double> highTemperatures;
+		vector<double> lowTemperatures;
+		vector<double> days;
+		vector<double> years;
+		
+		
+		// Help variables
+		double highTemp;
+		double lowTemp;
 		double day;
-		string year;
-		
-		// Create Histogram
-		
-		TH2D* highTemp= new TH2D("highTemp", "High Temperature;Year;Temp °C",years.size(),years[0],years[0]+years.size(),1,0,40);
-		//highTemp->Sumw2();
-		//highTemp->SetMinimum(0);
-	
-		TH2D* lowTemp= new TH2D("lowTemp", "Low Temperatures;Year;Temp °C",years.size(),years[0],years[0]+years.size(),1,-30,0);
-		//lowTemp->Sumw2();
-		//lowTemp->SetMinimum(0);
+		double year;
+
 	
 		//int i = 0;
-		while(inFile >> year) {
-			inFile >> day;
-			inFile >> temp;
+		while(inFile >> day) {
+			inFile >> highTemp;
+			inFile >> lowTemp;
+			inFile >> year;
 			
 			//cout << temp << endl;
-			temperatures.push_back(temp);
-			days.push_back(lTemp);
-			double helpYear=atof(year.substr(0,4).c_str());
-			years.push_back(helpYear);
+			highTemperatures.push_back(highTemp);
+			lowTemperatures.push_back(lowTemp);
+			days.push_back(day);
+			years.push_back(year);
 			//i++;
 			//if(i > 20) break; 
 		}
 		
+		// Create Histogram
 		
+		TH3D* highTemp= new TH3D("highTemp", "High Temperature;Year;Temp °C",365,0,365,1,0,40,years.size(),years[0],years[0]+years.size());
+		//highTemp->Sumw2();
+		//highTemp->SetMinimum(0);
+	
+		TH3D* lowTemp= new TH3D("lowTemp", "Low Temperature;Year;Temp °C",365,0,365,1,-30,0,years.size(),years[0],years[0]+years.size());
+		//lowTemp->Sumw2();
+		//lowTemp->SetMinimum(0);
 		
 		for (unsigned int i=0; i <years.size(); i++){
 			
-			highTemp->Fill(highTemperatures[i]);
-			lowTemp->Fill(lowTemperatures[i]);
+			highTemp->Fill(days[i],highTemperatures[i],years[i]);
+			lowTemp->Fill(days[i],lowTemperatures[i],years[i]);
 			
 		}
 	
@@ -180,6 +194,13 @@ void plot(string filePath){
 		highTemp->Draw();
 		lowTemp->Draw("same");
 	
+		// Save the canvas as a picture
+		c1->SaveAs("Highest_and_Lowest_Temepratues.jpg");
+	}
+	
+	else {
+		
+		cout << "Wrong File Name" << endl;
 	}
 }
 
