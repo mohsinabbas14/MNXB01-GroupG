@@ -52,9 +52,9 @@ void plot(string filePath){
 	
 		// creating canvas
 	
-		TCanvas *c1 = new TCanvas("c1","Mean Temperatures",500,20,1000,500);
+		TCanvas *c1 = new TCanvas("c1","Mean Temperatures",200,10,1000,500);
 
-		c1->SetFillColor(42);
+		c1->SetFillColor(16);
 		c1->SetGrid();
     
 		double* daysA = &days[0];
@@ -73,6 +73,13 @@ void plot(string filePath){
 		gr->GetXaxis()->CenterTitle();
 		gr->GetYaxis()->CenterTitle();
 		gr->Draw("ACP");
+		gStyle->SetOptTitle(0);
+		TLegend *leg = new TLegend(0.75, 0.75, 0.95, 0.95, "", "NDC");
+		leg->SetFillStyle(0); //Hollow fill (transparent)
+		leg->SetBorderSize(0); //Get rid of the border
+		leg->AddEntry(gr, "Mean Temperature", "p"); //Use object title, draw fill
+		gr->Draw("ACP");
+		leg->Draw(); //Legends are automatically drawn with "SAME
 	}
 	
 	
@@ -89,11 +96,11 @@ void plot(string filePath){
 		// Create Histogram
 		
 		TH1D* highTemp= new TH1D("highTemp", "Warmest Day;Day;Count",365,0,365);
-		//highTemp->Sumw2();
+		highTemp->Sumw2();
 		//highTemp->SetMinimum(0);
 	
 		TH1D* lowTemp= new TH1D("lowTemp", "Coldest Day;Day;Count",365,0,365);
-		//lowTemp->Sumw2();
+		lowTemp->Sumw2();
 		//lowTemp->SetMinimum(0);
 	
 		//int i = 0;
@@ -110,9 +117,9 @@ void plot(string filePath){
 	
 		// creating canvas
 	
-		TCanvas *c1 = new TCanvas("c1","Mean Temperatures",500,20,1000,500);
+		TCanvas *c1 = new TCanvas("c1","Mean Temperatures",200,10,1000,500);
 
-		c1->SetFillColor(42);
+		c1->SetFillColor(16);
 		c1->SetGrid();
 		
 		
@@ -129,20 +136,22 @@ void plot(string filePath){
 		lowTemp->Fit(g3,"R+");
 		
 		cout << "Its uncertainty is " << fGaus->GetParError(1) << endl;
-		TLegend *leg = new TLegend(0.65, 0.75, 0.92, 0.92, "", "NDC");
+		TLegend *leg = new TLegend(0.75, 0.75, 0.95, 0.95, "", "NDC");
 		leg->SetFillStyle(0); //Hollow fill (transparent)
 		leg->SetBorderSize(0); //Get rid of the border
-		leg->AddEntry(highTemp, "Warmest Day", "F"); //Use object title, draw fill
-		leg->AddEntry(lowTemp, "Coldest Day", "F"); //Use custom title
+		leg->AddEntry(highTemp, "Warmest Day", "l"); //Use object title, draw fill
+		leg->AddEntry(lowTemp, "Coldest Day", "l"); //Use custom title
 		highTemp->Draw();
 		lowTemp->Draw("SAME"); //Draw on top of the existing plot
 		leg->Draw(); //Legends are automatically drawn with "SAME"
+		highTemp->GetXaxis()->CenterTitle();
+		highTemp->GetYaxis()->CenterTitle();
 		gStyle->SetOptStat(0);
 		gStyle->SetOptFit(0);
 		gStyle->SetOptTitle(0);
 		highTemp->SetLineColor(kRed);
 		// Save the canvas as a picture
-		c1->SaveAs("highLow.jpg");
+		c1->SaveAs("ColdWarm.jpg");
 		
 	}	
 	
@@ -185,11 +194,11 @@ void plot(string filePath){
 		// Create Histogram
 		
 		TH3D* highTempHist= new TH3D("highTemp", "High Temperature;Year;Temp °C",365,0,365,years.size(),years[0],years[0]+years.size(),400,-30,40);
-		//highTemp->Sumw2();
+		highTempHist->Sumw2();
 		//highTemp->SetMinimum(0);
 	
 		TH3D* lowTempHist= new TH3D("lowTemp", "Low Temperature;Year;Temp °C",365,0,365,years.size(),years[0],years[0]+years.size(),300,-30,40);
-		//lowTemp->Sumw2();
+		lowTempHist->Sumw2();
 		//lowTemp->SetMinimum(0);
 		
 		for (unsigned int i=0; i <years.size(); i++){
@@ -204,22 +213,22 @@ void plot(string filePath){
 	
 		// creating canvas
 	
-		TCanvas *c1 = new TCanvas("c1","Mean Temperatures",500,20,1000,500);
+		TCanvas *c1 = new TCanvas("c1","Temperatures",200,10,1000,500);
 
-		c1->SetFillColor(42);
+		c1->SetFillColor(16);
 		c1->SetGrid();
 		highTempHist->SetMarkerColor(kRed);
 		lowTempHist->SetMarkerColor(kBlue);
 		highTempHist->SetMarkerStyle(20);
 		lowTempHist->SetMarkerStyle(22);
 		
-		TLegend *leg = new TLegend(0.65, 0.75, 0.92, 0.92, "", "NDC");
+		TLegend *leg = new TLegend(0.85, 0.85, 1, 1, "", "NDC");
 		leg->SetFillStyle(0); //Hollow fill (transparent)
 		leg->SetBorderSize(0); //Get rid of the border
-		leg->AddEntry(highTempHist, "Highest Temp", "F"); //Use object title, draw fill
-		leg->AddEntry(lowTempHist, "Lowest Temp", "F"); //Use custom title
+		leg->AddEntry(highTempHist, "Highest Temp", "p"); //Use object title, draw fill
+		leg->AddEntry(lowTempHist, "Lowest Temp", "p"); //Use custom title
 		
-		highTempHist->Draw();
+		highTempHist->Draw("");
 		lowTempHist->Draw("same");
 		leg->Draw(); //Legends are automatically drawn with "SAME"
 		highTempHist->SetTitle("Mean Temperature Per Day (all years)");
@@ -229,6 +238,18 @@ void plot(string filePath){
 		highTempHist->GetYaxis()->CenterTitle();
 		highTempHist->GetZaxis()->SetTitle("Temperature (degrees Celsius)");
 		highTempHist->GetZaxis()->CenterTitle();
+		gStyle->SetOptStat(0);
+		gStyle->SetOptTitle(0);
+		gStyle->SetTitleSize(0.05, "x"); //Use bigger text on the axes
+		gStyle->SetTitleSize(0.05, "y");
+		gStyle->SetLabelSize(0.05, "x"); //Use bigger labels too
+		gStyle->SetLabelSize(0.05, "y");
+		gStyle->SetTitleSize(0.05, "z");
+		gStyle->SetLabelSize(0.05, "z");
+		gStyle->SetPadTopMargin(0.05); //Change the margins to fit our new sizes
+		gStyle->SetPadRightMargin(0.05);
+		gStyle->SetPadBottomMargin(0.16);
+		gStyle->SetPadLeftMargin(0.16);
 	
 		// Save the canvas as a picture
 		c1->SaveAs("Highest_and_Lowest_Temepratues.jpg");
