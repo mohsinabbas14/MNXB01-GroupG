@@ -132,10 +132,18 @@ string int_to_str(Int_t num) {
   return ss.str();
 }
 
+// Status: See if compile in ROOT
+// Convert Int_t to string 
+string duo_to_str(Double_t num) {
+  stringstream ss;
+  ss << num;
+  return ss.str();
+}
+
 
 // Status: See if compile in ROOT
 // Convert string to Int_t 
-Int_t str_to_int(string str) {
+Double_t str_to_int(string str) {
   stringstream ss(str);
   Int_t num;
   ss >> num;
@@ -162,6 +170,16 @@ Int_t getNumberOfDaysInMonth(Int_t month, Int_t year)
     return 30;
 } 
 
+// Status: See if compile in ROOT
+//function will return total number of days
+Int_t getDayNumberInYear(vector<Int_t> date)
+{
+  Int_t days = date[2]; 
+  for(int imonth = 1; imonth <= date[1]; ++imonth) 
+    days += getNumberOfDaysInMonth(imonth, date[0]);
+  return days;
+} 
+
 
 // Status: See if compile in ROOT
 // Returns file names from a given directory. 
@@ -185,77 +203,61 @@ Int_t getdir (string dir, vector<string> &files)
 }
 
 
+vector<Int_t> dateToInts(string strToSplit) {
+  char delimeter = '-';
+  stringstream ss(strToSplit);
+  string item;
+  vector<string> splittedStrings;
+  while (getline(ss, item, delimeter)) {
+      splittedStrings.push_back(item);
+    }
+  vector<Int_t> k; 
+  for(unsigned int i = 0; i < splittedStrings.size(); ++i) 
+    k.push_back(str_to_int(splittedStrings[i]));
+  return k;
+}
+
 
 // Status: Not done
-// This one: Merges the entire (mT/lT/fT) file in one goes, but needs a cubic vector. 
+// This one: Merges the entire  file in one goes, but needs a cubic vector. 
 // newHist[i][j][k]; i: Title in file, j: x[] y[] sumOfWeights[], k: 
-Int_t calcHistmT(string dir, vector<string> &sameJob, vector< vector< vector<Double_t> > > &newHist) 
+Int_t calcHistmT(string dir, vector<string> &sameJob, vector< vector<Double_t> > &newHist) 
 {
-  if(sameJob.size() == 0)
+  if(sameJob.size() != 1)
     return 1; 
 
-  Bool_t firstFile = true; 
-
-  // Check if the sameJob-files are mT, lT or fT type. 
-  Int_t nrOfFiles; // Number of files. 
-  Int_t totalYear;
-  if(sameJob[0].at(0) == 'mT') { 
-    ...
-  } else if(sameJob[0].at(0) == 'lT') {
-    ...
-  } else if(sameJob[0].at(0) == 'fT') {
-    ...
-  }
-
   // For x-type files for sameJob: // [i][k], where k is for x[] 
-  vector< vector<double> > numeratorSum(nrOfFiles, vector< Double_t >()), errnumeratorSum(nrOfFiles, vector< Double_t >()), sumSumW(nrOfFiles, vector< Double_t >()); 
+  Double_t meanTemp; 
+  Int_t nrOfDays;  
 
-  for(Int_t iJob = 0; iJob < sameJob.size(); ) { // Every File
+  for(unsigned int iJob = 0; iJob < sameJob.size(); ++iJob ) { // Every File
+
     //   cout << "sameJob " << iJob << ": " << sameJob[iJob] << endl; 
     string direction = dir + sameJob[iJob]; 
     ifstream input(direction.c_str());
-    Int_t i = -1; // matrix_j. 
     string line;
-    Int_t iLine = 0; // Line i:th in a file 
+    string oldDate = "";
 
-    for(Int_t in = 0; in < sameJob.size(); ++ in) 
+    // Goes through the entire file 
+    while (getline(input, line)) 
+      {
+	// Converts line to 3. 
+	std::istringstream iss(line);
+	string date, time;
+	Double_t temp;
+	iss >> date >> time >> temp;	 
 
-      // Goes through the entire file 
-      while (getline(input, line)) 
-	{
-	  // Check if "line" is a centrality title, if so next matrix and line.   
-	  for(Int_t year = 0; year < totalYear; ++year) 
-	    for(Int_t month = 0; month < 12; ++month)
-	      for(Int_t day = 0; day < 31; ++day) { 
-		string date = sameJob[0].substr(1,4) + "distCgen" + int_to_str(cent) + int_to_str(typeBS); 
-		if(line.find(centHist) != string::npos) { // Find the search word.
-		  getline(input, line); // Get first line of data after title 
-		  ++i; // New matrix in newHist; 
-		  iLine = 0; 	
-		}
-	      }  
-
-	  // Converts line to 4 double. 
-	  std::istringstream iss(line);
-	  Double_t x, y, err, sumOfWeights;
-	  iss >> x >> y >> err >> sumOfWeights;	    
-
-	  if(firstFile) {
-	    numeratorSum[i].push_back(y);
-	    errnumeratorSum[i].push_back(err);
-	    sumSumW[i].push_back(sumOfWeights); 
-
-	    newHist[i][0].push_back(x);
-	    newHist[i][1].push_back(y);
-	    newHist[i][2].push_back(err);
-	    newHist[i][3].push_back(sumOfWeights);
-	  } else {
-	    numeratorSum[i].at(iLine) += y; 
-	    errnumeratorSum[i].at(iLine) += err; 
-	    sumSumW[i].at(iLine) += sumOfWeights; 
-	  }	
-	  ++iLine;	
-	} // Entire file 
+	if(date.compare(oldDate) != 0) {
+	  newHist[0].push_back(date);
+	  newHist[1].push_back(meanTemp/nrOfDays);
+	  meanTemp = temp;
+	  nrOfDays = 1;	
+	  oldDate = date; 
+	} else {
+	  meanTemp += temp; 
+	  nrOfDays += 1; 
+	}		
+      } // Entire file 
 
     // Deleting file. 
     if( remove(direction.c_str()) != 0) 
@@ -265,204 +267,148 @@ Int_t calcHistmT(string dir, vector<string> &sameJob, vector< vector< vector<Dou
       cout << sameJob[iJob] << endl; ;
       sameJob.erase(sameJob.begin() + iJob); 
     }  
-    firstFile = false; // Now to the other files. 
-  } // All files 
-
-  // Assign the merged values 
-  for( Int_t i = 0; i < newHist.size(); ++i) 
-    for( Int_t k = 0; k < newHist[i][0].size(); ++k) {
-      newHist[i][1][k] = numeratorSum[i][k]; 
-      newHist[i][2][k] = errnumeratorSum[i][k];
-      newHist[i][3][k] = sumSumW[i][k]; 
-    }
+  }
   return 0; 
 }
 
 
-
 // Status: Not done
-// This one: Merges the entire (mT/lT/fT) file in one goes, but needs a cubic vector. 
+// This one: Merges the entire file in one goes, but needs a cubic vector. 
 // newHist[i][j][k]; i: Title in file, j: x[] y[] sumOfWeights[], k: 
-Int_t calcHistlh(string dir, vector<string> &sameJob, vector< vector< vector<Double_t> > > &newHist) 
+Int_t calcHistlH(string dir, vector<string> &sameJob, vector< vector< vector<Double_t> > > &newHist) 
 {
-  if(sameJob.size() == 0)
+  if(sameJob.size() != 1)
     return 1; 
 
-  Bool_t firstFile = true; 
-
-  // Check if the sameJob-files are mT, lT or fT type. 
-  Int_t nrOfFiles; // Number of files. 
-  Int_t totalYear;
-  if(sameJob[0].at(0) == 'mT') { 
-    ...
-  } else if(sameJob[0].at(0) == 'lT') {
-    ...
-  } else if(sameJob[0].at(0) == 'fT') {
-    ...
-  }
-
   // For x-type files for sameJob: // [i][k], where k is for x[] 
-  vector< vector<double> > numeratorSum(nrOfFiles, vector< Double_t >()), errnumeratorSum(nrOfFiles, vector< Double_t >()), sumSumW(nrOfFiles, vector< Double_t >()); 
+  Double_t meanTemp; 
+  Int_t nrOfDays;  
 
-  for(Int_t iJob = 0; iJob < sameJob.size(); ) { // Every File
-    //   cout << "sameJob " << iJob << ": " << sameJob[iJob] << endl; 
-    string direction = dir + sameJob[iJob]; 
-    ifstream input(direction.c_str());
-    Int_t i = -1; // matrix_j. 
-    string line;
-    Int_t iLine = 0; // Line i:th in a file 
+  //   cout << "sameJob " << iJob << ": " << sameJob[iJob] << endl; 
+  string direction = dir + sameJob[0]; 
+  ifstream input(direction.c_str());
+  string line;
+  string oldDate = "";
 
-    for(Int_t in = 0; in < sameJob.size(); ++ in) 
+  int OldYear = 0; 
+  int dayH, dayL = 0; 
+  int tempH = -999; 
+  int tempL = 999; 
+  // Goes through the entire file 
+  while (getline(input, line)) 
+    {
+      // Converts line to 3. 
+      std::istringstream iss(line);
+      string date, time;
+      Double_t temp;
+      iss >> date >> time >> temp;	 
+      vector<Int_t> yearMonthDay = dateToInts(date);
 
-      // Goes through the entire file 
-      while (getline(input, line)) 
-	{
-	  // Check if "line" is a centrality title, if so next matrix and line.   
-	  for(Int_t year = 0; year < totalYear; ++year) 
-	    for(Int_t month = 0; month < 12; ++month)
-	      for(Int_t day = 0; day < 31; ++day) { 
-		string date = sameJob[0].substr(1,4) + "distCgen" + int_to_str(cent) + int_to_str(typeBS); 
-		if(line.find(centHist) != string::npos) { // Find the search word.
-		  getline(input, line); // Get first line of data after title 
-		  ++i; // New matrix in newHist; 
-		  iLine = 0; 	
-		}
-	      }  
+      if(OldYear != yearMonthDay[0]) { // New year. 
+	double x = yearMonthDay.at(0);
+	newHist[0].push_back(x);
+	newHist[1].push_back(dayL);
+	newHist[2].push_back(dayH);
+	dayH = 0; 
+	dayL = 0;
+	tempH = -999; 
+	tempL = 999; 
+	OldYear = yearMonthDay[0];
+      }
 
-	  // Converts line to 4 double. 
-	  std::istringstream iss(line);
-	  Double_t x, y, err, sumOfWeights;
-	  iss >> x >> y >> err >> sumOfWeights;	    
+      if(date.compare(oldDate) != 0) { // New day.
+	if(meanTemp/nrOfDays > tempH) {
+	  tempH = meanTemp/nrOfDays;
+	  dayH = getDayNumberInYear(dateToInts(oldDate));
+	}
+	if(meanTemp/nrOfDays < tempL){
+	  tempL = meanTemp/nrOfDays;
+	  dayL = getDayNumberInYear(dateToInts(oldDate));
+	}
+	meanTemp = temp;
+	nrOfDays = 1;	
+	oldDate = date; 
+      } else { // Old day. 
+	meanTemp += temp; 
+	nrOfDays += 1; 
+      }		
 
-	  if(firstFile) {
-	    numeratorSum[i].push_back(y);
-	    errnumeratorSum[i].push_back(err);
-	    sumSumW[i].push_back(sumOfWeights); 
+    } // Entire file 
 
-	    newHist[i][0].push_back(x);
-	    newHist[i][1].push_back(y);
-	    newHist[i][2].push_back(err);
-	    newHist[i][3].push_back(sumOfWeights);
-	  } else {
-	    numeratorSum[i].at(iLine) += y; 
-	    errnumeratorSum[i].at(iLine) += err; 
-	    sumSumW[i].at(iLine) += sumOfWeights; 
-	  }	
-	  ++iLine;	
-	} // Entire file 
+  // Deleting file. 
+  if( remove(direction.c_str()) != 0) 
+    cout << "Error deleting file" << endl;
+  else {
+    puts("File successfully deleted"); 
+    cout << sameJob[0] << endl; ;
+    sameJob.erase(sameJob.begin()); 
+  }  
 
-    // Deleting file. 
-    if( remove(direction.c_str()) != 0) 
-      cout << "Error deleting file" << endl;
-    else {
-      puts("File successfully deleted"); 
-      cout << sameJob[iJob] << endl; ;
-      sameJob.erase(sameJob.begin() + iJob); 
-    }  
-    firstFile = false; // Now to the other files. 
-  } // All files 
-
-  // Assign the merged values 
-  for( Int_t i = 0; i < newHist.size(); ++i) 
-    for( Int_t k = 0; k < newHist[i][0].size(); ++k) {
-      newHist[i][1][k] = numeratorSum[i][k]; 
-      newHist[i][2][k] = errnumeratorSum[i][k];
-      newHist[i][3][k] = sumSumW[i][k]; 
-    }
   return 0; 
 }
 
 
 
 // Status: Not done
-// This one: Merges the entire (mT/lT/fT) file in one goes, but needs a cubic vector. 
+// This one: Merges the entire file in one goes, but needs a cubic vector. 
 // newHist[i][j][k]; i: Title in file, j: x[] y[] sumOfWeights[], k: 
 Int_t calcHistfT(string dir, vector<string> &sameJob, vector< vector< vector<Double_t> > > &newHist) 
 {
-  if(sameJob.size() == 0)
+  if(sameJob.size() != 1)
     return 1; 
 
-  Bool_t firstFile = true; 
-
-  // Check if the sameJob-files are mT, lT or fT type. 
-  Int_t nrOfFiles; // Number of files. 
-  Int_t totalYear;
-  if(sameJob[0].at(0) == 'mT') { 
-    ...
-  } else if(sameJob[0].at(0) == 'lT') {
-    ...
-  } else if(sameJob[0].at(0) == 'fT') {
-    ...
-  }
-
-  // For x-type files for sameJob: // [i][k], where k is for x[] 
-  vector< vector<double> > numeratorSum(nrOfFiles, vector< Double_t >()), errnumeratorSum(nrOfFiles, vector< Double_t >()), sumSumW(nrOfFiles, vector< Double_t >()); 
-
-  for(Int_t iJob = 0; iJob < sameJob.size(); ) { // Every File
     //   cout << "sameJob " << iJob << ": " << sameJob[iJob] << endl; 
-    string direction = dir + sameJob[iJob]; 
+    string direction = dir + sameJob[0]; 
     ifstream input(direction.c_str());
-    Int_t i = -1; // matrix_j. 
     string line;
-    Int_t iLine = 0; // Line i:th in a file 
+    string oldDate = "";
 
-    for(Int_t in = 0; in < sameJob.size(); ++ in) 
+    int dayH, dayL = 0; 
+    int tempH = -999; 
+    int tempL = 999; 
+    // Goes through the entire file 
+    while (getline(input, line)) 
+      {
+	// Converts line to 3. 
+	std::istringstream iss(line);
+	string date, time;
+	Double_t temp;
+	iss >> date >> time >> temp;	 
+	vector<Double_t> yearMonthDay = dateToInts(date);
 
-      // Goes through the entire file 
-      while (getline(input, line)) 
-	{
-	  // Check if "line" is a centrality title, if so next matrix and line.   
-	  for(Int_t year = 0; year < totalYear; ++year) 
-	    for(Int_t month = 0; month < 12; ++month)
-	      for(Int_t day = 0; day < 31; ++day) { 
-		string date = sameJob[0].substr(1,4) + "distCgen" + int_to_str(cent) + int_to_str(typeBS); 
-		if(line.find(centHist) != string::npos) { // Find the search word.
-		  getline(input, line); // Get first line of data after title 
-		  ++i; // New matrix in newHist; 
-		  iLine = 0; 	
-		}
-	      }  
-
-	  // Converts line to 4 double. 
-	  std::istringstream iss(line);
-	  Double_t x, y, err, sumOfWeights;
-	  iss >> x >> y >> err >> sumOfWeights;	    
-
-	  if(firstFile) {
-	    numeratorSum[i].push_back(y);
-	    errnumeratorSum[i].push_back(err);
-	    sumSumW[i].push_back(sumOfWeights); 
-
-	    newHist[i][0].push_back(x);
-	    newHist[i][1].push_back(y);
-	    newHist[i][2].push_back(err);
-	    newHist[i][3].push_back(sumOfWeights);
-	  } else {
-	    numeratorSum[i].at(iLine) += y; 
-	    errnumeratorSum[i].at(iLine) += err; 
-	    sumSumW[i].at(iLine) += sumOfWeights; 
-	  }	
-	  ++iLine;	
-	} // Entire file 
+	if(date.compare(oldDate) != 0) { // New day.
+	  double y = yearMonthDay.at(2);
+	  newHist[0].push_back(y);
+	  newHist[1].push_back(dayL);
+	  newHist[2].push_back(dayH);
+	  double x = yearMonthDay.at(0);
+	  newHist[3].push_back(x);
+	  dayH = 0; 
+	  dayL = 0;
+	  tempH = -999; 
+	  tempL = 999; 
+	  oldDate = date; 
+	} 
+	if(temp > tempH) {
+	  tempH = temp;
+	  dayH = getDayNumberInYear(dateToInts(oldDate));
+	}
+	if(temp < tempL){
+	  tempL = temp;
+	  dayL = getDayNumberInYear(dateToInts(oldDate));
+	}
+		
+      } // Entire file 
 
     // Deleting file. 
     if( remove(direction.c_str()) != 0) 
       cout << "Error deleting file" << endl;
     else {
       puts("File successfully deleted"); 
-      cout << sameJob[iJob] << endl; ;
-      sameJob.erase(sameJob.begin() + iJob); 
+      cout << sameJob[0] << endl; ;
+      sameJob.erase(sameJob.begin()); 
     }  
-    firstFile = false; // Now to the other files. 
-  } // All files 
 
-  // Assign the merged values 
-  for( Int_t i = 0; i < newHist.size(); ++i) 
-    for( Int_t k = 0; k < newHist[i][0].size(); ++k) {
-      newHist[i][1][k] = numeratorSum[i][k]; 
-      newHist[i][2][k] = errnumeratorSum[i][k];
-      newHist[i][3][k] = sumSumW[i][k]; 
-    }
   return 0; 
 }
 
@@ -479,31 +425,29 @@ Int_t Analysis(char* argv[]) {
   string dir = "./";  // Directory where the datafiles exist in.
   
   // Setting the path to the Analysis directory.  
-  if(argc > 3) {
-    if (string(argv[1]) != "X")
-      type = argv[1];
-    if (string(argv[2]) != "X")
-      givenCity = argv[2];
-    if (string(argv[3]) != "X")
-      dir = "./" + (string) argv[2] + "/";
-  }
+  if (string(argv[1]) != "X")
+    type = argv[1];
+  if (string(argv[2]) != "X")
+    givenCity = argv[2];
+  if (string(argv[3]) != "X")
+    dir = "./" + (string) argv[2] + "/";
 
   // Returns every file in given folder. 
   vector<string> files = vector<string>(); // All files in that directory. 
   getdir(dir,files); // Give folder name, returns files names. 
 
-  // List of Hist-types: mT, lT and fT.
+  // List of Hist-types: mT, lH and fT.
   vector<string> histTypes;
   histTypes.push_back("mT");
-  histTypes.push_back("lT");
+  histTypes.push_back("lH");
   histTypes.push_back("fT");
 
   // Saves all the datafiles with the given histogram type.
-  vector<string> sameJobs; // mT, lT and fT
+  vector<string> sameJobs; // mT, lH and fT
 
-  // Goes through "files", and returns datafiles (mT/lT/fT) with the given prefix.  
-  for (unsigned Int_t ifile = 0; ifile < files.size(); ++ifile) 
-    // Find all data files as they are the only ones that begins with mT, lT or fT.
+  // Goes through "files", and returns datafiles (mT/lH/fT) with the given prefix.  
+  for (unsigned int ifile = 0; ifile < files.size(); ++ifile) 
+    // Find all data files as they are the only ones that begins with mT, lH or fT.
     if(files[ifile].at(2) == 'R') // Only use files that have been read.
       if(files[ifile].at(0) == 'X' && files[ifile].at(1) == 'X') { // Only specific datafile names. 
 
@@ -524,7 +468,7 @@ Int_t Analysis(char* argv[]) {
     if(sameJobs.size() == 0) // If no data files exists. 
       return 1; 
 
-    // Lets call the columns x, y, z, w, x   
+    // Lets call the columns x, y, z, w  
     vector< vector<Double_t> > newHist(4, vector< Double_t >()); 
 
     // Assign new file new. 
@@ -532,25 +476,23 @@ Int_t Analysis(char* argv[]) {
 
     // Calculate the new hist, depending on histogram type. 
      string name = sameJobs[0].replace(2,1,"A"); // i.e. XXACity.dat
-    if(sameJob[0].at(0) == 'mT') { 
+    if(sameJobs[0].at(0) == 'm') { 
       name = sameJobs[0].replace(0,2,"Sweden"); // i.e. mTASweden.dat
-      calcNewHistmT(dir, sameJobs, newHist); 
-      newfileName = dir + name;
-    } else if(sameJob[0].at(0) == 'lT') {
-      name = sameJobs[0].replace(0,2,type); // i.e. lTACity.dat
-      calcNewHistlT(dir, sameJobs, newHist); 
-      newfileName = dir + name;
-    } else if(sameJob[0].at(0) == 'fT') {
+      calcHistmT(dir, sameJobs, newHist); 
+    } else if(sameJobs[0].at(0) == 'l') {
+      name = sameJobs[0].replace(0,2,type); // i.e. lHACity.dat
+      calcHistlH(dir, sameJobs, newHist); 
+    } else if(sameJobs[0].at(0) == 'f') {
       name = sameJobs[0].replace(0,2,type); // i.e. fTACity.dat
-      calcNewHistfT(dir, sameJobs, newHist); 
-      newfileName = dir + name;
+      calcHistfT(dir, sameJobs, newHist); 
     }
+    newfileName = dir + name;
 
     // Create file
     ofstream ofsNewHist(newfileName.c_str());
 
     // Print the [column][line] data into file. 
-    for( Int_t k = 0; k < newHist[0].size(); ++k) { 
+    for(unsigned int k = 0; k < newHist[0].size(); ++k) { 
       ofsNewHist << fixed << scientific << setprecision(6); // Unnecessary?
       ofsNewHist<< newHist[0][k]<<"  "<< newHist[1][k]<<"  "
 		<< newHist[2][k]<<"  "<< newHist[3][k]<< endl;
