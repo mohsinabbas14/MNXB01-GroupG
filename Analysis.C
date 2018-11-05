@@ -23,9 +23,9 @@
  *       - Description:
  *         * Convert string to Int_t 
  *       - Arguments needed: 
- *         * integer
- *       - Returns: 
  *         * string
+ *       - Returns: 
+ *         * Double_t
  *
  *     * getNumberOfDaysInMonth(Int_t month, Int_t year) 
  *       - Description:
@@ -34,6 +34,22 @@
  *         * Int_t month number 1-12, Int_t year number XXXX (i.e. 1995)  
  *       - Returns: 
  *         * Int_t number of days. 
+ *
+ *     * dateToInts(string strToSplit)
+ *       - Description:
+ *         * Returns the date in a vector: {year, month, day}.   
+ *       - Arguments needed: 
+ *         * string with dates: year-month-day 
+ *       - Returns: 
+ *         * vector<Int_t>
+ *
+ *     * getDayNumberInYear(vector<Int_t> date) 
+ *       - Description:
+ *         * Returns number of days in of that year intil that date.   
+ *       - Arguments needed: 
+ *         * vector<Int_t>, {year, month, day}
+ *       - Returns: 
+ *         * Int_t number of days.  
  *
  *     * getdir(string dir, vector<string> &files)
  *       - Description:
@@ -45,24 +61,25 @@
  *
  *     * calcHistmT(string dir, vector<string> &sameJob, vector< vector<double> > &newHist)
  *       - Description:
- *         * Calculate the average temperature of a day (2nd column), for each day, for every year. 
- Columns in file: 1:date | 2:<temperature>
+ *         * Calculate the average temperature in the entire country (all given cities) 
+ *           of a day (2nd column), for each day, for every year. 
+ *           Columns in file: 1:date | 2:<temperature>
  *       - Arguments needed: 
  *         * string directory path form current place (i.e. here/til/destination), 
- vector<string> containing filenames of the same histogram type and 
- (empty) vector< vector<double> > that will be used to fill the file.  
+ *           vector<string> containing filenames of the same histogram type and 
+ *           (empty) vector< vector<double> > that will be used to fill the file.  
  *       - Returns: 
  *         * Int_t: 0 if done, 1 if something went wrong.
  *
  *     * calcHistlH(string dir, vector<string> &sameJob, vector< vector<double> > > &newHist) 
  *       - Description:
  *         * For a given city search for the day, in each year, with the highest and 
- lowest temperature (mean value during the day).
- Columns in file: 1:year | 2:day(lowest) | 3:day(highest)
+ *           lowest temperature (mean value during the day).
+ *           Columns in file: 1:year | 2:day(lowest) | 3:day(highest)
  *       - Arguments needed: 
  *         * string directory path form current place (i.e. here/til/destination), 
- vector<string> containing filenames of the same histogram type and 
- (empty) vector< vector<double> > that will be used to fill the file. 
+ *           vector<string> containing filenames of the same histogram type and 
+ *           (empty) vector< vector<double> > that will be used to fill the file. 
  *       - Returns: 
  *         * Int_t: 0 if done, 1 if something went wrong.
  *
@@ -72,16 +89,16 @@
  Columns in file: 1:day | 2:H | 3:L | 4:year
  *       - Arguments needed: 
  *         * string directory path form current place (i.e. here/til/destination), 
- vector<string> containing filenames of the same histogram type and 
- (empty) vector< vector<double> > that will be used to fill the file.
+ *           vector<string> containing filenames of the same histogram type and 
+ *           (empty) vector< vector<double> > that will be used to fill the file.
  *       - Returns: 
  *         * Int_t: 0 if done, 1 if something went wrong.
  *
  *     * Analysis(Int_t argc, char* argv[])
  *       - Description: 
  *         * Depending on the choosen histogram type (that will need different of arguments), 
- this method will need the directory where the data file (following a specific 
- template of both data and filename.   
+ *           this method will need the directory where the data file (following a specific 
+ *           template of both data and filename).   
  *       - Arguments needed: 
  *         * char* argv[1]: histogram type: mT, hL, fT. 
  *         * char* argv[2]: city. (X for no).  
@@ -486,31 +503,92 @@ Int_t Analysis(char* argv[]) {
 
   // Assign new file new. 
   string newfileName;
+  char typeH = 'A';
 
   // Calculate the new hist, depending on histogram type. 
   string name = sameJobs[0].replace(2,1,"A"); // i.e. XXACity.dat
   if(sameJobs[0].at(0) == 'm') { 
     name = sameJobs[0].replace(0,2,"Sweden"); // i.e. mTASweden.dat
-    calcHistmT(dir, sameJobs, newHist); 
+    typeH = 'm';
   } else if(sameJobs[0].at(0) == 'l') {
     name = sameJobs[0].replace(0,2,type); // i.e. lHACity.dat
-    calcHistlH(dir, sameJobs, newHist); 
+    typeH = 'l';
   } else if(sameJobs[0].at(0) == 'f') {
     name = sameJobs[0].replace(0,2,type); // i.e. fTACity.dat
-    calcHistfT(dir, sameJobs, newHist); 
+    typeH = 'f';
   }
   newfileName = dir + name;
 
   // Create file
   ofstream ofsNewHist(newfileName.c_str());
 
-  // Print the [column][line] data into file. 
-  for(unsigned int k = 0; k < newHist[0].size(); ++k) { 
-    ofsNewHist << fixed << scientific << setprecision(6); // Unnecessary?
-    ofsNewHist<< newHist[0][k]<<"  "<< newHist[1][k]<<"  "
-	      << newHist[2][k]<<"  "<< newHist[3][k]<< endl;
-  } // All subtitles	
+  // Calculate the mean temperaure over the entire country. 
+  vector< vector<Double_t> > totalsum(4, vector< Double_t >());
+  vector<Int_t> numberofCities;
+  Bool_t firstTime = true; 
+  switch(typeH) {
+  case 'm' : 
+    for(unsigned int icity = 0; icity < sameJobs.size(); ++icity) {
+      calcHistmT(dir, sameJobs, newHist);
+      // The dates of measurement in a city
+      for(unsigned int k = 0; k < newHist[0].size(); ++k) { 
+	if(firstTime) {
+	  totalsum[0].push_back(newHist[0][k]);	  
+	  totalsum[1].push_back(newHist[1][k]);	  
+	  totalsum[2].push_back(newHist[2][k]);	  
+	  totalsum[3].push_back(newHist[3][k]);
+	} else {
+	  // The dates of measurement in a the total list. 
+	  for(unsigned int i = 0; i < totalsum[0].size(); ++i) { 
+	    // If the date is not in the list, add it. 
+	    if(totalsum[0][i] != newHist[0][k] && totalsum[1][i] != newHist[1][k] 
+	       && totalsum[2][i] != newHist[2][k] ) { 
+	      totalsum[0].push_back(newHist[0][k]);	  
+	      totalsum[1].push_back(newHist[1][k]);	  
+	      totalsum[2].push_back(newHist[2][k]);	  
+	      totalsum[3].push_back(newHist[3][k]);
+	      numberofCities.push_back(1);
+	      // If the date is in the list, add the temperatures.
+	    } else if(totalsum[0][i] == newHist[0][k] && totalsum[1][i] == newHist[1][k] 
+		      && totalsum[2][i] == newHist[2][k] ) {
+	      totalsum[3][k] += newHist[3][k];
+	      numberofCities[k] += 1; 	
+	    }
+	  }
+	}
+      }
+      firstTime = false; 
+    } 
+    // Calculate the mean temperature over all cities. 
+    for(unsigned int i = 0; i < totalsum[0].size(); ++i) {
+      totalsum[3][i] = totalsum[3][i]/numberofCities[i];  
+    }
 
+    for(unsigned int k = 0; k < newHist[0].size(); ++k) { 
+      ofsNewHist << fixed << scientific << setprecision(6); 
+      ofsNewHist << totalsum[0][k]<<"-"<< totalsum[1][k]<<"-"<<totalsum[2][k]
+		 << "  " << totalsum[3][k]<< endl;
+    } // All subtitles
+    break;
+  case 'l' :
+    calcHistlH(dir, sameJobs, newHist); 
+    for(unsigned int k = 0; k < newHist[0].size(); ++k) { 
+      ofsNewHist << fixed << scientific << setprecision(6); 
+      ofsNewHist<< newHist[0][k]<<"  "<< newHist[1][k]<<"  "
+		<< newHist[2][k]<< endl;
+    } // All subtitles
+    break;
+  case 'f' :
+    calcHistfT(dir, sameJobs, newHist); 
+    for(unsigned int k = 0; k < newHist[0].size(); ++k) { 
+      ofsNewHist << fixed << scientific << setprecision(6); 
+      ofsNewHist<< newHist[0][k]<<"  "<< newHist[1][k]<<"  "
+		<< newHist[2][k]<<"  "<< newHist[3][k]<< endl;
+    } // All subtitles
+    break;
+  default :
+    cout << "No printout" << endl;
+  }
+	
   return 0; 
 }
-
