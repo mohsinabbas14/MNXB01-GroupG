@@ -11,29 +11,21 @@
  *
  * Methods:  
  *
- *     * int_to_str(Int_t num)
- *       - Description:
- *         * Convert a Int_t to a string 
- *       - Arguments needed: 
- *         * integer
- *       - Returns: 
- *         * string
- *
  *     * str_to_int(string str) 
  *       - Description:
- *         * Convert string to Int_t 
+ *         * Convert string to int 
  *       - Arguments needed: 
  *         * string
  *       - Returns: 
- *         * Double_t
+ *         * double
  *
- *     * getNumberOfDaysInMonth(Int_t month, Int_t year) 
+ *     * getNumberOfDaysInMonth(int month, int year) 
  *       - Description:
  *         * Returns number of days in the given month of that year.   
  *       - Arguments needed: 
- *         * Int_t month number 1-12, Int_t year number XXXX (i.e. 1995)  
+ *         * int month number 1-12, int year number XXXX (i.e. 1995)  
  *       - Returns: 
- *         * Int_t number of days. 
+ *         * int number of days. 
  *
  *     * dateToInts(string strToSplit)
  *       - Description:
@@ -41,15 +33,15 @@
  *       - Arguments needed: 
  *         * string with dates: year-month-day 
  *       - Returns: 
- *         * vector<Int_t>
+ *         * vector<int>
  *
- *     * getDayNumberInYear(vector<Int_t> date) 
+ *     * getDayNumberInYear(vector<int> date) 
  *       - Description:
  *         * Returns number of days in of that year intil that date.   
  *       - Arguments needed: 
- *         * vector<Int_t>, {year, month, day}
+ *         * vector<int>, {year, month, day}
  *       - Returns: 
- *         * Int_t number of days.  
+ *         * int number of days.  
  *
  *     * getdir(string dir, vector<string> &files)
  *       - Description:
@@ -57,7 +49,7 @@
  *       - Arguments needed: 
  *         * string directory path form current place (i.e. here/til/destination), (empty) vector<string>  
  *       - Returns: 
- *         * Int_t: 0 if done, 1 if something went wrong. 
+ *         * int: 0 if done, 1 if something went wrong. 
  *
  *     * calcHistmT(string dir, vector<string> &sameJob, vector< vector<double> > &newHist)
  *       - Description:
@@ -69,7 +61,7 @@
  *           vector<string> containing filenames of the same histogram type and 
  *           (empty) vector< vector<double> > that will be used to fill the file.  
  *       - Returns: 
- *         * Int_t: 0 if done, 1 if something went wrong.
+ *         * int: 0 if done, 1 if something went wrong.
  *
  *     * calcHistlH(string dir, vector<string> &sameJob, vector< vector<double> > > &newHist) 
  *       - Description:
@@ -81,20 +73,20 @@
  *           vector<string> containing filenames of the same histogram type and 
  *           (empty) vector< vector<double> > that will be used to fill the file. 
  *       - Returns: 
- *         * Int_t: 0 if done, 1 if something went wrong.
+ *         * int: 0 if done, 1 if something went wrong.
  *
  *     * calcHistfT(string dir, vector<string> &sameJob, vector< vector<double> > > &newHist) 
  *       - Description:
  *         * For a given city, find the highest and lowest temperature during the day for a given year.  
- Columns in file: 1:day | 2:H | 3:L | 4:year
+ *           Columns in file: 1:day | 2:H | 3:L | 4:year
  *       - Arguments needed: 
  *         * string directory path form current place (i.e. here/til/destination), 
  *           vector<string> containing filenames of the same histogram type and 
  *           (empty) vector< vector<double> > that will be used to fill the file.
  *       - Returns: 
- *         * Int_t: 0 if done, 1 if something went wrong.
+ *         * int: 0 if done, 1 if something went wrong.
  *
- *     * Analysis(Int_t argc, char* argv[])
+ *     * Analysis(int argc, char* argv[])
  *       - Description: 
  *         * Depending on the choosen histogram type (that will need different of arguments), 
  *           this method will need the directory where the data file (following a specific 
@@ -104,7 +96,7 @@
  *         * char* argv[2]: city. (X for no).  
  *         * char* argv[3]: directory 
  *       - Returns: 
- *         * Int_t: 0 if done, 1 if something went wrong.
+ *         * int: 0 if done, 1 if something went wrong.
  * 
  *
  */
@@ -127,6 +119,7 @@
 #include <algorithm>
 #include <math.h>
 
+/*
 // ROOT library obejcts
 #include <TF1.h> // 1d function class
 #include <TH1.h> // 1d histogram classes
@@ -135,41 +128,23 @@
 #include <TStyle.h>  // style object
 #include <TMath.h>   // math functions
 #include <TCanvas.h> // canvas object
-
+*/
 
 using namespace std;
 
 
-
-// Status: See if compile in ROOT
-// Convert Int_t to string 
-string int_to_str(Int_t num) {
-  stringstream ss;
-  ss << num;
-  return ss.str();
-}
-
-// Status: See if compile in ROOT
-// Convert Int_t to string 
-string duo_to_str(Double_t num) {
-  stringstream ss;
-  ss << num;
-  return ss.str();
-}
-
-
-// Status: See if compile in ROOT
-// Convert string to Int_t 
-Double_t str_to_int(string str) {
+// Convert string to int 
+double str_to_int(string str) {
   stringstream ss(str);
-  Int_t num;
+  int num;
   ss >> num;
   return num;
 }
 
-// Status: See if compile in ROOT
+
+
 //function will return total number of days
-Int_t getNumberOfDaysInMonth(Int_t month, Int_t year)
+int getNumberOfDaysInMonth(int month, int year)
 {
   // Leap year condition, if month is 2.
   if( month == 2)
@@ -187,20 +162,19 @@ Int_t getNumberOfDaysInMonth(Int_t month, Int_t year)
     return 30;
 } 
 
-// Status: See if compile in ROOT
+
 //function will return total number of days
-Int_t getDayNumberInYear(vector<Int_t> date)
+int getDayNumberInYear(vector<int> date)
 {
-  Int_t days = date[2]; 
-  for(int imonth = 1; imonth <= date[1]; ++imonth) 
+  int days = date[2]; 
+  for(int imonth = 1; imonth < date[1]; ++imonth) 
     days += getNumberOfDaysInMonth(imonth, date[0]);
   return days;
 } 
 
 
-// Status: See if compile in ROOT
 // Returns file names from a given directory. 
-Int_t getdir (string dir, vector<string> &files)
+int getdir (string dir, vector<string> &files)
 {
   DIR *dp;
   struct dirent *dirp;
@@ -211,16 +185,18 @@ Int_t getdir (string dir, vector<string> &files)
   string str(".dat"); 
   while ((dirp = readdir(dp)) != NULL) {
     // Something weird happens.  This line prevents it (some if it). 
-    if(string(dirp->d_name).find(str) == string::npos || string(dirp->d_name) == str) 
+    if(string(dirp->d_name).find(str) == string::npos || string(dirp->d_name) == str) {
       continue; 
+    }
     files.push_back(string(dirp->d_name));
   }
   closedir(dp);
+
   return 0;
 }
 
 
-vector<Int_t> dateToInts(string strToSplit) {
+vector<int> dateToInts(string strToSplit) {
   char delimeter = '-';
   stringstream ss(strToSplit);
   string item;
@@ -228,33 +204,33 @@ vector<Int_t> dateToInts(string strToSplit) {
   while (getline(ss, item, delimeter)) {
     splittedStrings.push_back(item);
   }
-  vector<Int_t> k; 
+  vector<int> k; 
   for(unsigned int i = 0; i < splittedStrings.size(); ++i) 
     k.push_back(str_to_int(splittedStrings[i]));
   return k;
 }
 
 
-// Status: Not done
+
 // This one: Merges the entire  file in one goes, but needs a cubic vector. 
 // newHist[i][j][k]; i: Title in file, j: x[] y[] sumOfWeights[], k: 
-Int_t calcHistmT(string dir, vector<string> &sameJob, vector< vector<Double_t> > &newHist) 
+int calcHistmT(string dir, string &sameJob, vector< vector<double> > &newHist) 
 {
-  if(sameJob.size() != 1)
-    return 1; 
-
+  cout <<" calcHistmT Start " << endl;
   // For x-type files for sameJob: // [i][k], where k is for x[] 
-  Double_t meanTemp = 0; 
-  Int_t nrOfDays = 1;  
-
-  for(unsigned int iJob = 0; iJob < sameJob.size(); ++iJob ) { // Every File
+  double meanTemp = 0; 
+  int nrOfDays = 1;  
 
     //   cout << "sameJob " << iJob << ": " << sameJob[iJob] << endl; 
-    string direction = dir + sameJob[iJob]; 
+    string direction = dir + sameJob; 
     ifstream input(direction.c_str());
     string line;
     string oldDate = "";
     bool firstTime = true; 
+
+    //    * Calculate the average temperature in the entire country (all given cities)
+   // of a day (2nd column), for each day, for every year. 
+    // Columns in file: 1:date | 2:<temperature>
 
     // Goes through the entire file 
     while (getline(input, line)) 
@@ -262,12 +238,14 @@ Int_t calcHistmT(string dir, vector<string> &sameJob, vector< vector<Double_t> >
 	// Converts line to 3. 
 	std::istringstream iss(line);
 	string date, time;
-	Double_t temp;
+	double temp;
 	iss >> date >> time >> temp;	 
 
 	if(date.compare(oldDate) != 0) { 
-	  vector<Int_t> yearMonthDay = dateToInts(date);
-	  if(!firstTime) {
+	  vector<int> yearMonthDay = dateToInts(date);
+	  if(firstTime) {
+	    cout  << " Adding in mT" << endl;
+	    cout << yearMonthDay[0] <<" " << yearMonthDay[1] << " " << yearMonthDay[2] << " " << meanTemp/nrOfDays << endl;
 	    newHist[0].push_back(yearMonthDay[0]);
 	    newHist[1].push_back(yearMonthDay[1]);
 	    newHist[2].push_back(yearMonthDay[2]);	
@@ -283,30 +261,28 @@ Int_t calcHistmT(string dir, vector<string> &sameJob, vector< vector<Double_t> >
 	}		
       } // Entire file 
 
+    /*
     // Deleting file. 
     if( remove(direction.c_str()) != 0) 
       cout << "Error deleting file" << endl;
     else {
-      puts("File successfully deleted"); 
-      cout << sameJob[iJob] << endl; ;
-      sameJob.erase(sameJob.begin() + iJob); 
+      cout << "File successfully deleted" << sameJob << endl;
+      //  sameJob.erase(); 
     }  
-  }
+    */
   return 0; 
 }
 
 
-// Status: Not done
+
 // This one: Merges the entire file in one goes, but needs a cubic vector. 
 // newHist[i][j][k]; i: Title in file, j: x[] y[] sumOfWeights[], k: 
-Int_t calcHistlH(string dir, vector<string> &sameJob, vector< vector<Double_t> > &newHist) 
+int calcHistlH(string dir, string &sameJob, vector< vector<double> > &newHist) 
 {
-  if(sameJob.size() != 1)
-    return 1; 
-
+	  cout << " Begin calc lH " << endl;
   // For x-type files for sameJob: // [i][k], where k is for x[] 
-  Double_t meanTemp = 0; 
-  Int_t nrOfDays = 1;  
+  double meanTemp = 0; 
+  int nrOfDays = 1;  
 
   //   cout << "sameJob " << iJob << ": " << sameJob[iJob] << endl; 
   string direction = dir + sameJob[0]; 
@@ -320,18 +296,25 @@ Int_t calcHistlH(string dir, vector<string> &sameJob, vector< vector<Double_t> >
   int dayL = 0;
   int tempH = -999; 
   int tempL = 999; 
+
+  //  For a given city search for the day, in each year, with the highest and 
+  //  lowest temperature (mean value during the day).
+   //  Columns in file: 1:year | 2:day(lowest) | 3:day(highest)
+
+
   // Goes through the entire file 
   while (getline(input, line)) 
     {
       // Converts line to 3. 
       std::istringstream iss(line);
       string date, time;
-      Double_t temp;
+      double temp;
       iss >> date >> time >> temp;	 
-      vector<Int_t> yearMonthDay = dateToInts(date);
+      vector<int> yearMonthDay = dateToInts(date);
 
       if(OldYear != yearMonthDay[0]) { // New year. 
-	if(!firstTime) {
+	if(firstTime) {
+	  cout << yearMonthDay[0] <<" " << dayL << " " << dayH << " " << endl;
 	  newHist[0].push_back(yearMonthDay[0]);
 	  newHist[1].push_back(dayL);
 	  newHist[2].push_back(dayH);
@@ -363,82 +346,67 @@ Int_t calcHistlH(string dir, vector<string> &sameJob, vector< vector<Double_t> >
     } // Entire file 
 
   // Deleting file. 
+  /*
   if( remove(direction.c_str()) != 0) 
     cout << "Error deleting file" << endl;
   else {
-    puts("File successfully deleted"); 
-    cout << sameJob[0] << endl; ;
-    sameJob.erase(sameJob.begin()); 
+    cout << "File successfully deleted " << sameJob << endl;
+    sameJob.erase(); 
   }  
-
+  */
+	  cout << " end calc lH " << endl;
   return 0; 
 }
 
 
 
-// Status: Not done
 // This one: Merges the entire file in one goes, but needs a cubic vector. 
 // newHist[i][j][k]; i: Title in file, j: x[] y[] sumOfWeights[], k: 
-Int_t calcHistfT(string dir, vector<string> &sameJob, vector< vector<Double_t> > &newHist) 
+int calcHistfT(string dir, string &sameJob, vector< vector<double> > &newHist) 
 {
-  if(sameJob.size() != 1)
-    return 1; 
-
-  //   cout << "sameJob " << iJob << ": " << sameJob[iJob] << endl; 
-  string direction = dir + sameJob[0]; 
+  string direction = dir + sameJob; 
   ifstream input(direction.c_str());
   string line;
   string oldDate = "";
   bool firstTime = true; 
 
-  int dayH = 0;
-  int dayL = 0; 
-  int tempH = -999; 
-  int tempL = 999; 
-  // Goes through the entire file 
+  double tempH = -999; 
+  double tempL = 999; 
+  // Goes through the entire file
   while (getline(input, line)) 
     {
       // Converts line to 3. 
       std::istringstream iss(line);
       string date, time;
-      Double_t temp;
+      double temp;
       iss >> date >> time >> temp;	 
-      vector<Int_t> yearMonthDay = dateToInts(date);
+      vector<int> yearMonthDay = dateToInts(date);
 
-      if(date.compare(oldDate) != 0) { // New day.
+      if(date.compare(oldDate) != 0) { // A new day.
 	if(!firstTime) {
 	  newHist[0].push_back(getDayNumberInYear(dateToInts(oldDate)));
-	  newHist[1].push_back(dayL);
-	  newHist[2].push_back(dayH);
+	  newHist[1].push_back(tempH);
+	  newHist[2].push_back(tempL);
 	  newHist[3].push_back(yearMonthDay.at(0));
 	}
-	dayH = 0; 
-	dayL = 0;
 	tempH = -999; 
 	tempL = 999; 
 	oldDate = date; 
 	firstTime = false; 
       } 
-      if(temp > tempH) {
+      if(temp > tempH) 
 	tempH = temp;
-	dayH = getDayNumberInYear(dateToInts(oldDate));
-      }
-      if(temp < tempL){
+      if(temp < tempL)
 	tempL = temp;
-	dayL = getDayNumberInYear(dateToInts(oldDate));
-      }
-		
     } // Entire file 
 
   // Deleting file. 
   if( remove(direction.c_str()) != 0) 
     cout << "Error deleting file" << endl;
   else {
-    puts("File successfully deleted"); 
-    cout << sameJob[0] << endl; ;
-    sameJob.erase(sameJob.begin()); 
+    cout << "File successfully deleted " <<  sameJob << endl; 
+    sameJob.erase(); 
   }  
-
   return 0; 
 }
 
@@ -448,20 +416,8 @@ Int_t calcHistfT(string dir, vector<string> &sameJob, vector< vector<Double_t> >
 // argv[1]: histogram type.
 // argv[2]: city. (X for not needed) 
 // argv[3]: directory
-Int_t Analysis(char* argv[]) { 
-
-  string type;
-  string givenCity; 
-  string dir = "./";  // Directory where the datafiles exist in.
+int analyze(string type, string givenCity, string dir) { 
   
-  // Setting the path to the Analysis directory.  
-  if (string(argv[1]) != "X")
-    type = argv[1];
-  if (string(argv[2]) != "X")
-    givenCity = argv[2];
-  if (string(argv[3]) != "X")
-    dir = "./" + (string) argv[2] + "/";
-
   // Returns every file in given folder. 
   vector<string> files = vector<string>(); // All files in that directory. 
   getdir(dir,files); // Give folder name, returns files names. 
@@ -483,76 +439,80 @@ Int_t Analysis(char* argv[]) {
 
 	// Check the city of data files.            01234567890
 	string city = files.at(ifile);      // i.e. XXRCity.dat
-	city = city.substr(3,city.size()-4);  // i.e. City
+	city = city.substr(3,city.size()-7);  // i.e. City
 
 	// If city given, skip any another city. 
-	if(givenCity != 'X') 
+	if(givenCity != "X") 
 	  if(city != givenCity) 
 	    continue; 
     	
 	// Add datafile-name to the sameJobs list. 
-	string filename = files.at(ifile);
-	sameJobs.push_back(filename);
+	string filename = files[ifile];
+	sameJobs.push_back(files[ifile]);
       }
   
-  if(sameJobs.size() == 0) // If no data files exists. 
+  if(sameJobs.size() == 0) { // If no data files exists. 
+    cout << "No data files found" << endl;
     return 1; 
+  }
 
   // Lets call the columns x, y, z, w  
   vector< vector<double> > newHist(4, vector< double >()); 
 
-  // Assign new file new. 
+  // Assign new file name. 
   string newfileName;
-  char typeH = 'A';
-
-  // Calculate the new hist, depending on histogram type. 
-  string name = sameJobs[0].replace(2,1,"A"); // i.e. XXACity.dat
-  if(sameJobs[0].at(0) == 'm') { 
-    name = sameJobs[0].replace(0,2,"Sweden"); // i.e. mTASweden.dat
-    typeH = 'm';
-  } else if(sameJobs[0].at(0) == 'l') {
-    name = sameJobs[0].replace(0,2,type); // i.e. lHACity.dat
-    typeH = 'l';
-  } else if(sameJobs[0].at(0) == 'f') {
-    name = sameJobs[0].replace(0,2,type); // i.e. fTACity.dat
-    typeH = 'f';
-  }
-  newfileName = dir + name;
+  string name = sameJobs[0];
+  name.replace(2,1,"A"); // i.e. XXACity.dat
+  string city = sameJobs[0];      // i.e. XXRCity.dat
+  city = city.substr(3,city.size()-7);  // i.e. City
+  name.replace(0,2,type); // i.e. mTASweden.dat
+  if(type.at(0) == 'm') 
+    name.replace(3,city.size(),"Sweden"); // i.e. mTASweden.dat
 
   // Create file
+  newfileName = dir + name;
   ofstream ofsNewHist(newfileName.c_str());
 
   // Calculate the mean temperaure over the entire country. 
-  vector< vector<Double_t> > totalsum(4, vector< Double_t >());
-  vector<Int_t> numberofCities;
-  Bool_t firstTime = true; 
-  switch(typeH) {
+  vector< vector<double> > totalsum(4, vector< double >());
+  vector<int> numberofCities;
+  bool firstTime = true; 
+  switch(type.at(0)) {
   case 'm' : 
+
     for(unsigned int icity = 0; icity < sameJobs.size(); ++icity) {
-      calcHistmT(dir, sameJobs, newHist);
+      calcHistmT(dir, sameJobs[icity], newHist);
       // The dates of measurement in a city
       for(unsigned int k = 0; k < newHist[0].size(); ++k) { 
 	if(firstTime) {
+	  cout <<" inside mt for 1  " << endl;
 	  totalsum[0].push_back(newHist[0][k]);	  
 	  totalsum[1].push_back(newHist[1][k]);	  
 	  totalsum[2].push_back(newHist[2][k]);	  
 	  totalsum[3].push_back(newHist[3][k]);
+	  cout <<" inside mt for 2  " << endl;
 	} else {
+	  cout <<" inside mt for 3  " << endl;
 	  // The dates of measurement in a the total list. 
 	  for(unsigned int i = 0; i < totalsum[0].size(); ++i) { 
+	  cout <<" inside mt for 4  " << endl;
 	    // If the date is not in the list, add it. 
 	    if(totalsum[0][i] != newHist[0][k] && totalsum[1][i] != newHist[1][k] 
 	       && totalsum[2][i] != newHist[2][k] ) { 
+	  cout <<" inside mt for 5  " << endl;
 	      totalsum[0].push_back(newHist[0][k]);	  
 	      totalsum[1].push_back(newHist[1][k]);	  
 	      totalsum[2].push_back(newHist[2][k]);	  
 	      totalsum[3].push_back(newHist[3][k]);
 	      numberofCities.push_back(1);
+	  cout <<" inside mt for 6  " << endl;
 	      // If the date is in the list, add the temperatures.
 	    } else if(totalsum[0][i] == newHist[0][k] && totalsum[1][i] == newHist[1][k] 
 		      && totalsum[2][i] == newHist[2][k] ) {
+	  cout <<" inside mt for 7  " << endl;
 	      totalsum[3][k] += newHist[3][k];
-	      numberofCities[k] += 1; 	
+	      numberofCities[k] += 1; 
+	  cout <<" inside mt for 8  " << endl;	
 	    }
 	  }
 	}
@@ -561,34 +521,62 @@ Int_t Analysis(char* argv[]) {
     } 
     // Calculate the mean temperature over all cities. 
     for(unsigned int i = 0; i < totalsum[0].size(); ++i) {
-      totalsum[3][i] = totalsum[3][i]/numberofCities[i];  
+	  cout <<" inside mt for 9  " << endl;
+      totalsum[3][i] = totalsum[3][i]/numberofCities[i]; 
+ 
     }
 
-    for(unsigned int k = 0; k < newHist[0].size(); ++k) { 
-      ofsNewHist << fixed << scientific << setprecision(6); 
+    for(unsigned int k = 0; k < newHist[0].size(); ++k) { 	  
+      cout <<" inside mt for 10  " << endl;
       ofsNewHist << totalsum[0][k]<<"-"<< totalsum[1][k]<<"-"<<totalsum[2][k]
 		 << "  " << totalsum[3][k]<< endl;
     } // All subtitles
+
     break;
   case 'l' :
-    calcHistlH(dir, sameJobs, newHist); 
+    calcHistlH(dir, sameJobs[0], newHist); 
     for(unsigned int k = 0; k < newHist[0].size(); ++k) { 
-      ofsNewHist << fixed << scientific << setprecision(6); 
       ofsNewHist<< newHist[0][k]<<"  "<< newHist[1][k]<<"  "
 		<< newHist[2][k]<< endl;
     } // All subtitles
     break;
+
   case 'f' :
-    calcHistfT(dir, sameJobs, newHist); 
+    calcHistfT(dir, sameJobs[0], newHist); 
     for(unsigned int k = 0; k < newHist[0].size(); ++k) { 
-      ofsNewHist << fixed << scientific << setprecision(6); 
       ofsNewHist<< newHist[0][k]<<"  "<< newHist[1][k]<<"  "
 		<< newHist[2][k]<<"  "<< newHist[3][k]<< endl;
     } // All subtitles
     break;
+
   default :
-    cout << "No printout" << endl;
+    cout << "Incorrect histogram-type typed" << endl;
   }
 	
+  return 0; 
+}
+
+
+// argv[1]: prefix. (X for no) 
+// argv[2]: directory
+int main(int argc, char* argv[]) { 
+
+  string type;
+  string givenCity; 
+  string dir = "./";  // Directory where the datafiles exist in.
+
+  // On which prefix word should the work be done on? 
+  if(argc > 3) {
+  // Setting the path to the Analysis directory.  
+  if (string(argv[1]) != "X")
+    type = argv[1];
+  if (string(argv[2]) != "X")
+    givenCity = argv[2];
+  if (string(argv[3]) != "X")
+    dir = "./" + (string) argv[3] + "/";
+  }
+
+  analyze(type, givenCity, dir);
+
   return 0; 
 }
