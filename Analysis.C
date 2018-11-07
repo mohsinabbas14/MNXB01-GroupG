@@ -18,7 +18,7 @@
  *         * string
  *       - Returns: 
  *         * double
- *
+ * 
  *     * getNumberOfDaysInMonth(int month, int year) 
  *       - Description:
  *         * Returns number of days in the given month of that year.   
@@ -49,7 +49,7 @@
  *       - Arguments needed: 
  *         * string directory path form current place (i.e. here/til/destination), (empty) vector<string>  
  *       - Returns: 
- *         * int: 0 if done, 1 if something went wrong. 
+ *         * int: 0 if done, error if something went wrong. 
  *
  *     * calcHistmT(string dir, vector<string> &sameJob, vector< vector<double> > &newHist)
  *       - Description:
@@ -86,24 +86,36 @@
  *       - Returns: 
  *         * int: 0 if done, 1 if something went wrong.
  *
- *     * Analysis(int argc, char* argv[])
+ *     * analyze(int argc, char* argv[])
  *       - Description: 
  *         * Depending on the choosen histogram type (that will need different of arguments), 
  *           this method will need the directory where the data file (following a specific 
  *           template of both data and filename).   
  *       - Arguments needed: 
- *         * char* argv[1]: histogram type: mT, hL, fT. 
- *         * char* argv[2]: city. (X for no).  
- *         * char* argv[3]: directory 
+ *         * string: histogram type: mT, hL, fT. 
+ *         * string: city. (X if you want all cities in directory, if using mT.)  
+ *         * string: directory 
  *       - Returns: 
  *         * int: 0 if done, 1 if something went wrong.
+ *
+ *     * Analysis(int argc, char* argv[])
+ *       - Description: 
+ *         * Calls on analyze 
+ *       - Arguments needed: 
+ *         * char* argv[1]: histogram type: mT, hL, fT. 
+ *         * char* argv[2]: city. (X if you want all cities in directory, if using mT.)  
+ *         * char* argv[3]: directory 
+ *       - Returns: 
+ *         * int: 0 if done.
  * 
  *
  */
 
+ 
+
 // Bias: The Mean temperature: Temperature is measured at a interval of 6 hours, however not all measures are included so there be some days where measure measurements are only taken at night. 
 
-// basic file operations
+// Basic file operations, some are unnecessary (I have used then in old codes)
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -117,23 +129,9 @@
 #include <dirent.h>
 #include <errno.h>
 #include <vector>
-#include <map>
-#include <algorithm>
 #include <math.h>
 
-/*
-// ROOT library obejcts
-#include <TF1.h> // 1d function class
-#include <TH1.h> // 1d histogram classes
-#include <TH2.h> // 2d histogram classes
-#include <TRandom.h> // random generators
-#include <TStyle.h>  // style object
-#include <TMath.h>   // math functions
-#include <TCanvas.h> // canvas object
-*/
-
 using namespace std;
-
 
 // Convert string to int 
 double str_to_int(string str) {
@@ -142,8 +140,6 @@ double str_to_int(string str) {
   ss >> num;
   return num;
 }
-
-
 
 //function will return total number of days
 int getNumberOfDaysInMonth(int month, int year)
@@ -203,9 +199,12 @@ vector<int> dateToInts(string strToSplit) {
   stringstream ss(strToSplit);
   string item;
   vector<string> splittedStrings;
+
+  // Returns the sentence between the given delimiter
   while (getline(ss, item, delimeter)) {
     splittedStrings.push_back(item);
   }
+  // Return the year, month, day in int form. 
   vector<int> k; 
   for(unsigned int i = 0; i < splittedStrings.size(); ++i) 
     k.push_back(str_to_int(splittedStrings[i]));
@@ -213,12 +212,8 @@ vector<int> dateToInts(string strToSplit) {
 }
 
 
-
-// This one: Merges the entire  file in one goes, but needs a cubic vector. 
-// newHist[i][j][k]; i: Title in file, j: x[] y[] sumOfWeights[], k: 
 int calcHistmT(string dir, string &sameJob, vector< vector<double> > &newHist) 
 {
-
   string direction = dir + sameJob; 
   ifstream input(direction.c_str());
   string line;
@@ -239,9 +234,9 @@ int calcHistmT(string dir, string &sameJob, vector< vector<double> > &newHist)
 
       if(date.compare(oldDate) != 0) { // A new day.
 	if(!firstTime) { // One day worth of info has not been recorded get.
-	  newHist[0].push_back(yearMonthDay[0]);
-	  newHist[1].push_back(yearMonthDay[1]);
-	  newHist[2].push_back(yearMonthDay[2]);	
+	  newHist[0].push_back(dateToInts(oldDate).at(0));
+	  newHist[1].push_back(dateToInts(oldDate).at(1));
+	  newHist[2].push_back(dateToInts(oldDate).at(2));	
 	  newHist[3].push_back(meanTemp/nrOfMeasurements);
 	}
 	// Reset new day values. 
@@ -255,22 +250,18 @@ int calcHistmT(string dir, string &sameJob, vector< vector<double> > &newHist)
       }
     } // Entire file
 
-  /*
   // Deleting file. 
-  if( remove(direction.c_str()) != 0) 
+  if( remove(direction.c_str()) != 0) { 
   cout << "Error deleting file" << endl;
-  else {
+  return 1;
+ } else {
   cout << "File successfully deleted" << sameJob << endl;
   //  sameJob.erase(); 
   }  
-  */
   return 0; 
 }
 
 
-
-// This one: Merges the entire file in one goes, but needs a cubic vector. 
-// newHist[i][j][k]; i: Title in file, j: x[] y[] sumOfWeights[], k: 
 int calcHistlH(string dir, string &sameJob, vector< vector<double> > &newHist) 
 { 
   string direction = dir + sameJob;  
@@ -315,7 +306,7 @@ int calcHistlH(string dir, string &sameJob, vector< vector<double> > &newHist)
 	} else { // The old year. 
 
 	  // Calc the mean temp of the day before 
-	  //  and test if it was the highest or lowest temp 
+	  //  and search for the highest/lowest temp 
 	  meanTemp = meanTemp/nrOfMeasurements;
 	  if(meanTemp > tempH) {
 	    tempH = meanTemp;
@@ -339,9 +330,10 @@ int calcHistlH(string dir, string &sameJob, vector< vector<double> > &newHist)
     } // Entire file 
 
   // Deleting file. 
-  if( remove(direction.c_str()) != 0) 
+  if( remove(direction.c_str()) != 0) {
     cout << "Error deleting file" << endl;
-  else {
+    return 1;
+  } else {
     cout << "File successfully deleted " << sameJob << endl;
     sameJob.erase(); 
   }  
@@ -349,9 +341,6 @@ int calcHistlH(string dir, string &sameJob, vector< vector<double> > &newHist)
 }
 
 
-
-// This one: Merges the entire file in one goes, but needs a cubic vector. 
-// newHist[i][j][k]; i: Title in file, j: x[] y[] sumOfWeights[], k: 
 int calcHistfT(string dir, string &sameJob, vector< vector<double> > &newHist) 
 {
   string direction = dir + sameJob; 
@@ -379,11 +368,14 @@ int calcHistfT(string dir, string &sameJob, vector< vector<double> > &newHist)
 	  newHist[2].push_back(tempL);
 	  newHist[3].push_back(yearMonthDay.at(0));
 	}
+
+	// Reset new year values.
 	tempH = -999; 
 	tempL = 999; 
 	oldDate = date; 
 	firstTime = false; 
       } 
+      // Search for highest/lowest temp.
       if(temp > tempH) 
 	tempH = temp;
       if(temp < tempL)
@@ -391,9 +383,10 @@ int calcHistfT(string dir, string &sameJob, vector< vector<double> > &newHist)
     } // Entire file 
 
   // Deleting file. 
-  if( remove(direction.c_str()) != 0) 
+  if( remove(direction.c_str()) != 0) {
     cout << "Error deleting file" << endl;
-  else {
+    return 1;
+  } else {
     cout << "File successfully deleted " <<  sameJob << endl; 
     sameJob.erase(); 
   }  
@@ -404,7 +397,7 @@ int calcHistfT(string dir, string &sameJob, vector< vector<double> > &newHist)
 
 // Status: See if compile in ROOT
 // argv[1]: histogram type.
-// argv[2]: city. (X for not needed) 
+// argv[2]: city. (X if you want all cities in directory.) 
 // argv[3]: directory
 int analyze(string type, string givenCity, string dir) { 
   
@@ -459,8 +452,6 @@ int analyze(string type, string givenCity, string dir) {
   if(type.at(0) == 'm') 
     name.replace(3,city.size(),"Sweden"); // i.e. mTASweden.dat
 
-  cout << " Directsa  " << dir + sameJobs[0] << endl; 
-
   // Create file
   newfileName = dir + name;
   ofstream ofsNewHist(newfileName.c_str());
@@ -483,8 +474,7 @@ int analyze(string type, string givenCity, string dir) {
 	  totalsum[1].push_back(newHist[1][k]);	  
 	  totalsum[2].push_back(newHist[2][k]);	  
 	  totalsum[3].push_back(newHist[3][k]);
-	  numberofCities.push_back(1);
-	  firstCity = false; 
+	  numberofCities.push_back(1); 
 	} else { // Not First city. 
 	  // The date (without year) does not exist in the "totalsum" hist. 
 	  for(unsigned int i = 0; i < totalsum[0].size(); ++i) {
@@ -509,18 +499,16 @@ int analyze(string type, string givenCity, string dir) {
 	} // else firstCity
 
       } // Going through "newHist"
+      firstCity = false;
     } // All cities have been done for. 
 
     // Calculate the mean temperature over all cities. 
     for(unsigned int i = 0; i < totalsum[0].size(); ++i) {
-	  cout <<" inside mt for 9  " << endl;
       totalsum[3][i] = totalsum[3][i]/numberofCities[i]; 
     }
 
     for(unsigned int k = 0; k < newHist[0].size(); ++k) { 	  
-      cout <<" inside mt for 10  " << endl;
-      ofsNewHist << totalsum[0][k]<<"-"<< totalsum[1][k]<<"-"<<totalsum[2][k]
-		 << "  " << totalsum[3][k]<< endl;
+      ofsNewHist <<totalsum[0][k]<<"-"<<totalsum[1][k]<<"-"<<totalsum[2][k]<<"  "<<totalsum[3][k]<< endl;
     } // All subtitles
     cout << "Done Calculating data for mT histogram" << endl; 
 
@@ -553,8 +541,9 @@ int analyze(string type, string givenCity, string dir) {
 }
 
 
-// argv[1]: prefix. (X for no) 
-// argv[2]: directory
+// argv[1]: type of hist 
+// argv[2]: city (X if using mT, if you want all cities.) 
+// argv[3]: directory. Just the directory name: <foldername>, if it exist in current directory.  
 int main(int argc, char* argv[]) { 
 
   string type;
