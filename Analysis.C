@@ -218,60 +218,52 @@ vector<int> dateToInts(string strToSplit) {
 // newHist[i][j][k]; i: Title in file, j: x[] y[] sumOfWeights[], k: 
 int calcHistmT(string dir, string &sameJob, vector< vector<double> > &newHist) 
 {
-  cout <<" calcHistmT Start " << endl;
-  // For x-type files for sameJob: // [i][k], where k is for x[] 
+
+  string direction = dir + sameJob; 
+  ifstream input(direction.c_str());
+  string line;
+  string oldDate = "";
+  bool firstTime = true; 
   double meanTemp = 0; 
-  int nrOfDays = 1;  
+  int nrOfMeasurements = 0;  
 
-    //   cout << "sameJob " << iJob << ": " << sameJob[iJob] << endl; 
-    string direction = dir + sameJob; 
-    ifstream input(direction.c_str());
-    string line;
-    string oldDate = "";
-    bool firstTime = true; 
+  // Goes through the entire file 
+  while (getline(input, line)) 
+    {
+      // Converts line to 3. 
+      std::istringstream iss(line);
+      string date, time;
+      double temp;
+      iss >> date >> time >> temp;	 
+      vector<int> yearMonthDay = dateToInts(date);
 
-    //    * Calculate the average temperature in the entire country (all given cities)
-   // of a day (2nd column), for each day, for every year. 
-    // Columns in file: 1:date | 2:<temperature>
+      if(date.compare(oldDate) != 0) { // A new day.
+	if(!firstTime) { // One day worth of info has not been recorded get.
+	  newHist[0].push_back(yearMonthDay[0]);
+	  newHist[1].push_back(yearMonthDay[1]);
+	  newHist[2].push_back(yearMonthDay[2]);	
+	  newHist[3].push_back(meanTemp/nrOfMeasurements);
+	}
+	// Reset new day values. 
+	oldDate = date; 
+	meanTemp = temp; 
+	nrOfMeasurements = 1;  
+	firstTime = false; 
+      } else {
+	meanTemp += temp;
+	nrOfMeasurements += 1;
+      }
+    } // Entire file
 
-    // Goes through the entire file 
-    while (getline(input, line)) 
-      {
-	// Converts line to 3. 
-	std::istringstream iss(line);
-	string date, time;
-	double temp;
-	iss >> date >> time >> temp;	 
-
-	if(date.compare(oldDate) != 0) { 
-	  vector<int> yearMonthDay = dateToInts(date);
-	  if(firstTime) {
-	    cout  << " Adding in mT" << endl;
-	    cout << yearMonthDay[0] <<" " << yearMonthDay[1] << " " << yearMonthDay[2] << " " << meanTemp/nrOfDays << endl;
-	    newHist[0].push_back(yearMonthDay[0]);
-	    newHist[1].push_back(yearMonthDay[1]);
-	    newHist[2].push_back(yearMonthDay[2]);	
-	    newHist[3].push_back(meanTemp/nrOfDays);
-	  }
-	  meanTemp = temp;
-	  nrOfDays = 1;	
-	  oldDate = date; 
-	  firstTime = false; 
-	} else {
-	  meanTemp += temp; 
-	  nrOfDays += 1; 
-	}		
-      } // Entire file 
-
-    /*
-    // Deleting file. 
-    if( remove(direction.c_str()) != 0) 
-      cout << "Error deleting file" << endl;
-    else {
-      cout << "File successfully deleted" << sameJob << endl;
-      //  sameJob.erase(); 
-    }  
-    */
+  /*
+  // Deleting file. 
+  if( remove(direction.c_str()) != 0) 
+  cout << "Error deleting file" << endl;
+  else {
+  cout << "File successfully deleted" << sameJob << endl;
+  //  sameJob.erase(); 
+  }  
+  */
   return 0; 
 }
 
@@ -280,15 +272,10 @@ int calcHistmT(string dir, string &sameJob, vector< vector<double> > &newHist)
 // This one: Merges the entire file in one goes, but needs a cubic vector. 
 // newHist[i][j][k]; i: Title in file, j: x[] y[] sumOfWeights[], k: 
 int calcHistlH(string dir, string &sameJob, vector< vector<double> > &newHist) 
-{
-  cout << " Begin calc lH " << endl; 
-
-cout << " dir2 " << sameJob << endl; 
-  string direction = dir + sameJob; 
-  cout << " dir " << direction << endl; 
+{ 
+  string direction = dir + sameJob;  
   ifstream input(direction.c_str());
   string line;
-
 
   bool firstTime = true; 
   int dayH = 0;
@@ -299,11 +286,6 @@ cout << " dir2 " << sameJob << endl;
   int nrOfMeasurements = 0;
   int oldYear = 0; 
   string oldDate = ""; 
-
-  //  For a given city search for the day, in each year, with the highest and 
-  //  lowest temperature (mean value during the day).
-   //  Columns in file: 1:year | 2:day(lowest) | 3:day(highest)
-
 
   // Goes through the entire file 
   while (getline(input, line)) 
@@ -318,7 +300,6 @@ cout << " dir2 " << sameJob << endl;
       if(date.compare(oldDate) != 0) { // New day.
 	if(yearMonthDay[0] != oldYear) {	// Start of a new year
 	  if(!firstTime) { // One year worth of info has not been recorded get.  
-	    cout << yearMonthDay[0] <<" " << dayL << " " << dayH << " " << endl;
 	    newHist[0].push_back(oldYear);
 	    newHist[1].push_back(dayL);
 	    newHist[2].push_back(dayH);
@@ -333,7 +314,8 @@ cout << " dir2 " << sameJob << endl;
 	  oldYear = yearMonthDay[0];
 	} else { // The old year. 
 
-	  // Calc the mean temp of the day before. 
+	  // Calc the mean temp of the day before 
+	  //  and test if it was the highest or lowest temp 
 	  meanTemp = meanTemp/nrOfMeasurements;
 	  if(meanTemp > tempH) {
 	    tempH = meanTemp;
@@ -357,15 +339,12 @@ cout << " dir2 " << sameJob << endl;
     } // Entire file 
 
   // Deleting file. 
-  /*
   if( remove(direction.c_str()) != 0) 
     cout << "Error deleting file" << endl;
   else {
     cout << "File successfully deleted " << sameJob << endl;
     sameJob.erase(); 
   }  
-  */
-	  cout << " end calc lH " << endl;
   return 0; 
 }
 
@@ -489,54 +468,52 @@ int analyze(string type, string givenCity, string dir) {
   // Calculate the mean temperaure over the entire country. 
   vector< vector<double> > totalsum(4, vector< double >());
   vector<int> numberofCities;
-  bool firstTime = true; 
+  bool firstCity = true; 
   switch(type.at(0)) {
   case 'm' : 
-
+    cout << "Calculating data for mT histogram" << endl; 
     for(unsigned int icity = 0; icity < sameJobs.size(); ++icity) {
+      // Calc for the city.
       calcHistmT(dir, sameJobs[icity], newHist);
+
       // The dates of measurement in a city
-      for(unsigned int k = 0; k < newHist[0].size(); ++k) { 
-	if(firstTime) {
-	  cout <<" inside mt for 1  " << endl;
+      for(unsigned int k = 0; k < newHist[0].size(); ++k) {
+	if(firstCity) {
 	  totalsum[0].push_back(newHist[0][k]);	  
 	  totalsum[1].push_back(newHist[1][k]);	  
 	  totalsum[2].push_back(newHist[2][k]);	  
 	  totalsum[3].push_back(newHist[3][k]);
-	  cout <<" inside mt for 2  " << endl;
-	} else {
-	  cout <<" inside mt for 3  " << endl;
-	  // The dates of measurement in a the total list. 
-	  for(unsigned int i = 0; i < totalsum[0].size(); ++i) { 
-	  cout <<" inside mt for 4  " << endl;
-	    // If the date is not in the list, add it. 
-	    if(totalsum[0][i] != newHist[0][k] && totalsum[1][i] != newHist[1][k] 
-	       && totalsum[2][i] != newHist[2][k] ) { 
-	  cout <<" inside mt for 5  " << endl;
+	  numberofCities.push_back(1);
+	  firstCity = false; 
+	} else { // Not First city. 
+	  // The date (without year) does not exist in the "totalsum" hist. 
+	  for(int i = 0; i < totalsum[0].size(); ++i) {
+	    // If "totalsum"'s date passes newHist's data
+	    if(totalsum[0][i] >= newHist[0][k] &&
+	       totalsum[1][i] >= newHist[1][k] && totalsum[2][i] > newHist[2][k])
+	      break; 
+
+	    // If the date does not exist, add it. 
+	    if(totalsum[0][i] != newHist[0][k] && 
+	       totalsum[1][i] != newHist[1][k] && totalsum[2][i] != newHist[2][k] ) { 
 	      totalsum[0].push_back(newHist[0][k]);	  
 	      totalsum[1].push_back(newHist[1][k]);	  
 	      totalsum[2].push_back(newHist[2][k]);	  
 	      totalsum[3].push_back(newHist[3][k]);
 	      numberofCities.push_back(1);
-	  cout <<" inside mt for 6  " << endl;
-	      // If the date is in the list, add the temperatures.
-	    } else if(totalsum[0][i] == newHist[0][k] && totalsum[1][i] == newHist[1][k] 
-		      && totalsum[2][i] == newHist[2][k] ) {
-	  cout <<" inside mt for 7  " << endl;
-	      totalsum[3][k] += newHist[3][k];
-	      numberofCities[k] += 1; 
-	  cout <<" inside mt for 8  " << endl;	
+	    } else { // add temp to that day. 
+	      totalsum[3][i] += newHist[3][k];
+	      numberofCities[i] += 1; 
 	    }
-	  }
-	}
-      }
-      firstTime = false; 
-    } 
+	  }	
+	} // else firstCity
+      } // Going through "newHist"
+    } // All cities have been done for. 
+
     // Calculate the mean temperature over all cities. 
     for(unsigned int i = 0; i < totalsum[0].size(); ++i) {
 	  cout <<" inside mt for 9  " << endl;
       totalsum[3][i] = totalsum[3][i]/numberofCities[i]; 
- 
     }
 
     for(unsigned int k = 0; k < newHist[0].size(); ++k) { 	  
@@ -544,24 +521,27 @@ int analyze(string type, string givenCity, string dir) {
       ofsNewHist << totalsum[0][k]<<"-"<< totalsum[1][k]<<"-"<<totalsum[2][k]
 		 << "  " << totalsum[3][k]<< endl;
     } // All subtitles
+    cout << "Done Calculating data for mT histogram" << endl; 
 
     break;
   case 'l' :
-    
-    cout << " Directsa2  " << dir + sameJobs[0] << endl;
+    cout << "Calculating data for lH histogram" << endl; 
     calcHistlH(dir, sameJobs[0], newHist); 
     for(unsigned int k = 0; k < newHist[0].size(); ++k) { 
       ofsNewHist<< newHist[0][k]<<"  "<< newHist[1][k]<<"  "
 		<< newHist[2][k]<< endl;
     } // All subtitles
+    cout << "Done Calculating data for mT histogram" << endl;
     break;
 
   case 'f' :
+    cout << "Calculating data for fT histogram" << endl; 
     calcHistfT(dir, sameJobs[0], newHist); 
     for(unsigned int k = 0; k < newHist[0].size(); ++k) { 
       ofsNewHist<< newHist[0][k]<<"  "<< newHist[1][k]<<"  "
 		<< newHist[2][k]<<"  "<< newHist[3][k]<< endl;
     } // All subtitles
+    cout << "Done Calculating data for mT histogram" << endl;
     break;
 
   default :
