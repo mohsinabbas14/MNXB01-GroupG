@@ -101,6 +101,8 @@
  *
  */
 
+// Bias: The Mean temperature: Temperature is measured at a interval of 6 hours, however not all measures are included so there be some days where measure measurements are only taken at night. 
+
 // basic file operations
 #include <iostream>
 #include <fstream>
@@ -279,23 +281,24 @@ int calcHistmT(string dir, string &sameJob, vector< vector<double> > &newHist)
 // newHist[i][j][k]; i: Title in file, j: x[] y[] sumOfWeights[], k: 
 int calcHistlH(string dir, string &sameJob, vector< vector<double> > &newHist) 
 {
-	  cout << " Begin calc lH " << endl;
-  // For x-type files for sameJob: // [i][k], where k is for x[] 
-  double meanTemp = 0; 
-  int nrOfDays = 1;  
+  cout << " Begin calc lH " << endl; 
 
-  //   cout << "sameJob " << iJob << ": " << sameJob[iJob] << endl; 
-  string direction = dir + sameJob[0]; 
+cout << " dir2 " << sameJob << endl; 
+  string direction = dir + sameJob; 
+  cout << " dir " << direction << endl; 
   ifstream input(direction.c_str());
   string line;
-  string oldDate = "";
-  bool firstTime = true; 
 
-  int OldYear = 0; 
+
+  bool firstTime = true; 
   int dayH = 0;
   int dayL = 0;
   int tempH = -999; 
-  int tempL = 999; 
+  int tempL = 999;
+  double meanTemp = 0;  
+  int nrOfMeasurements = 0;
+  int oldYear = 0; 
+  string oldDate = ""; 
 
   //  For a given city search for the day, in each year, with the highest and 
   //  lowest temperature (mean value during the day).
@@ -310,38 +313,46 @@ int calcHistlH(string dir, string &sameJob, vector< vector<double> > &newHist)
       string date, time;
       double temp;
       iss >> date >> time >> temp;	 
-      vector<int> yearMonthDay = dateToInts(date);
+      vector<int> yearMonthDay = dateToInts(date); 
 
-      if(OldYear != yearMonthDay[0]) { // New year. 
-	if(firstTime) {
-	  cout << yearMonthDay[0] <<" " << dayL << " " << dayH << " " << endl;
-	  newHist[0].push_back(yearMonthDay[0]);
-	  newHist[1].push_back(dayL);
-	  newHist[2].push_back(dayH);
-	}
-	dayH = 0; 
-	dayL = 0;
-	tempH = -999; 
-	tempL = 999; 
-	OldYear = yearMonthDay[0];
-	firstTime = false; 
-      }
       if(date.compare(oldDate) != 0) { // New day.
-	if(meanTemp/nrOfDays > tempH) {
-	  tempH = meanTemp/nrOfDays;
-	  dayH = getDayNumberInYear(dateToInts(oldDate));
+	if(yearMonthDay[0] != oldYear) {	// Start of a new year
+	  if(!firstTime) { // One year worth of info has not been recorded get.  
+	    cout << yearMonthDay[0] <<" " << dayL << " " << dayH << " " << endl;
+	    newHist[0].push_back(oldYear);
+	    newHist[1].push_back(dayL);
+	    newHist[2].push_back(dayH);
+	  }
+	  firstTime = false; 
+
+	  // Reset new year values. 
+	  dayH = 0; 
+	  dayL = 0;
+	  tempH = -999; 
+	  tempL = 999; 
+	  oldYear = yearMonthDay[0];
+	} else { // The old year. 
+
+	  // Calc the mean temp of the day before. 
+	  meanTemp = meanTemp/nrOfMeasurements;
+	  if(meanTemp > tempH) {
+	    tempH = meanTemp;
+	    dayH = getDayNumberInYear(dateToInts(oldDate));
+	  }
+	  if(meanTemp < tempL){
+	    tempL = meanTemp;
+	    dayL = getDayNumberInYear(dateToInts(oldDate));
+	  }
+
 	}
-	if(meanTemp/nrOfDays < tempL){
-	  tempL = meanTemp/nrOfDays;
-	  dayL = getDayNumberInYear(dateToInts(oldDate));
-	}
-	meanTemp = temp;
-	nrOfDays = 1;	
+	// Reset new day values. 
 	oldDate = date; 
-      } else { // Old day. 
-	meanTemp += temp; 
-	nrOfDays += 1; 
-      }		
+	meanTemp = temp; 
+	nrOfMeasurements = 1; 
+      } else { // The same day.
+	meanTemp += temp;
+	nrOfMeasurements += 1; 
+      }
 
     } // Entire file 
 
@@ -383,7 +394,7 @@ int calcHistfT(string dir, string &sameJob, vector< vector<double> > &newHist)
       vector<int> yearMonthDay = dateToInts(date);
 
       if(date.compare(oldDate) != 0) { // A new day.
-	if(!firstTime) {
+	if(!firstTime) { // One day worth of info has not been recorded get.
 	  newHist[0].push_back(getDayNumberInYear(dateToInts(oldDate)));
 	  newHist[1].push_back(tempH);
 	  newHist[2].push_back(tempL);
@@ -469,6 +480,8 @@ int analyze(string type, string givenCity, string dir) {
   if(type.at(0) == 'm') 
     name.replace(3,city.size(),"Sweden"); // i.e. mTASweden.dat
 
+  cout << " Directsa  " << dir + sameJobs[0] << endl; 
+
   // Create file
   newfileName = dir + name;
   ofstream ofsNewHist(newfileName.c_str());
@@ -534,6 +547,8 @@ int analyze(string type, string givenCity, string dir) {
 
     break;
   case 'l' :
+    
+    cout << " Directsa2  " << dir + sameJobs[0] << endl;
     calcHistlH(dir, sameJobs[0], newHist); 
     for(unsigned int k = 0; k < newHist[0].size(); ++k) { 
       ofsNewHist<< newHist[0][k]<<"  "<< newHist[1][k]<<"  "
