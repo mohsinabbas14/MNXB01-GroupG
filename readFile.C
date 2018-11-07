@@ -1,6 +1,6 @@
 /*
  *     Authors: Frank Johansson & Mohsin Abbas 2018-11-02
- *     Email:   nat13fjo@student.lu.se
+ *     Email:   nat13fjo@student.lu.se, ma0381ab-s@student.lu.se
  *
  * Description: 
  *		Reads a csv file and writes the useful data to a new file
@@ -11,9 +11,9 @@
  *     * readFile(string filePath, string begin, string end)
  *       - Description:
  *         * Reads the csv file, filters the data and writes the useful data to a new file
- * 			 with the name "xxr[City].dat"
+ * 			 with the name "XXR[City].dat"
  *       - Arguments needed: 
- *          * string containing the full path of the csv files that is to be read
+ *          * string containing the full path of the csv file that is to be read NO UNDERSCORES
  * 			* string containing the first date that is to be read on the form yyyy-mm-dd
  *			* string containing the first date that is to NOT be read on the form yyyy-mm-dd
  *       - Returns: 
@@ -35,10 +35,10 @@ void readFile(string filePath, string begin, string end) {
 	
 	// open input and output file
 	ifstream infile(filePath.c_str());
-	string fileHelpString = filePath.substr(filePath.find('_', 0)+1, filePath.find('.', 0)-filePath.find('_', 0));
+	string fileHelpString = filePath.substr(filePath.find('_', 0)+1, filePath.find('.', 5)-filePath.find('_', 0));
 
-	cout << fileHelpString << endl;
-	fileHelpString = string("xxr" + fileHelpString + "dat");
+	//cout << fileHelpString << endl;
+	fileHelpString = string("XXR" + fileHelpString + "dat");
 	ofstream outfile(fileHelpString.c_str());
 		
 	// read infile and skip the first few useless lines		
@@ -54,6 +54,7 @@ void readFile(string filePath, string begin, string end) {
 		
 		if(helpString.find(begin) != string::npos) {
 			isInInterval = true;
+			//cout << "should print" << endl;
 		}
 		if(helpString.find(end) != string::npos) {
 			break;

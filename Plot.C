@@ -1,30 +1,39 @@
+/*
+ *     Authors: Frank Johansson & Mohsin Abbas 2018-11-02
+ *     Email:   nat13fjo@student.lu.se, ma0381ab-s@student.lu.se
+ *
+ * Description: 
+ *		Plots the  different analysis files using root.
+ *
+ * Methods:  
+ *
+ *     * plot(string filePath)
+ *       - Description:
+ *         * Reads the analysis file and plots the data in specific way according to the file name.
+ * 			 The filename should have the form "xxA[City].dat" where xx is mT, hL or fT.
+ *       - Arguments needed: 
+ *          * string containing the full path of the analysis file that is to be read
+ *       - Returns: 
+ *         * void
+ *		
+ *
+ */
+ 
 #include <iostream>
 #include <vector>
 #include <string>
 #include <fstream>
-// Authors: Frank Johansson & Mailk Mohsin 2018-10-30
-// ROOT library obejcts
 #include <TF1.h> // 1d function class
 #include <TH1.h> // 1d histogram classes
 #include <TStyle.h>  // style object
-#include <TMath.h>   // math functions
 #include <TCanvas.h> // canvas object
-#include <TRandom.h>
 #include <TGraph.h>
 #include <TLegend.h>
-#include <TH2.h>
 #include <TH3.h>
-
-// Makes Graph for the Mean Temperature per day over all years
-	// Helpfunction
-
-double Gaussian(double* x, double* par) {
-	return par[0]*exp(-0.5*(x[0]*x[0] - 2*x[0]*par[1] + par[1]*par[1])/(par[2]*par[2]));
-}
-
 
 void plot(string filePath){
 	
+	// Makes Graph for the Mean Temperature per day over all years
 	if (filePath.substr(0,2)== "mT"){
 		
 		ifstream inFile(filePath.c_str());
@@ -36,7 +45,7 @@ void plot(string filePath){
 		//int i = 0;
 		while(inFile >> discard) {
 			inFile >> temp;
-			//cout << temp << endl;
+			cout << temp << endl;
 			temperatures.push_back(temp);
 			//i++;
 			//if(i > 20) break; 
@@ -63,10 +72,10 @@ void plot(string filePath){
 		// Plotting the days and temperature
    
 		TGraph *gr = new TGraph(int(temperatures.size()),daysA,temperaturesA);
-		gr->SetLineColor(2);
-		gr->SetLineWidth(4);
+		gr->SetLineColor(kBlack);
+		gr->SetLineWidth(1);
 		gr->SetMarkerColor(4);
-		gr->SetMarkerStyle(21);
+		gr->SetMarkerStyle(8);
 		gr->SetTitle("Mean Temperature Per Day (all years)");
 		gr->GetXaxis()->SetTitle("Days");
 		gr->GetYaxis()->SetTitle("Temperatures (degrees Celsius)");
@@ -80,12 +89,14 @@ void plot(string filePath){
 		leg->AddEntry(gr, "Mean Temperature", "p"); //Use object title, draw fill
 		gr->Draw("ACP");
 		leg->Draw(); //Legends are automatically drawn with "SAME
+		// Save the canvas as a picture
+		c1->SaveAs("Mean_temperature.png");
 	}
 	
 	
-	//  2-D Histogram for a given city and shows day of Highest amd lowest temperatures every year.
+	//  1_D Histogram for a given city shows counts of coldest amd warmest days for all years.
 	
-	else if (filePath.substr(0,2)== "hL"){
+	else if (filePath.substr(0,2)== "lH"){
 		
 		ifstream inFile(filePath.c_str());
 		// storing temperatures and days in two vectors	
@@ -95,26 +106,27 @@ void plot(string filePath){
 		
 		// Create Histogram
 		
-		TH1D* highTemp= new TH1D("highTemp", "Warmest Day;Day;Count",365,0,365);
+		TH1D* highTemp= new TH1D("highTemp", "Warmest Day;Day;Count",366,0,366);
 		highTemp->Sumw2();
 		//highTemp->SetMinimum(0);
 	
-		TH1D* lowTemp= new TH1D("lowTemp", "Coldest Day;Day;Count",365,0,365);
+		TH1D* lowTemp= new TH1D("lowTemp", "Coldest Day;Day;Count",366,0,366);
 		lowTemp->Sumw2();
 		//lowTemp->SetMinimum(0);
 	
 		//int i = 0;
 		while(inFile >> year) {
-			inFile >> hDay;
 			inFile >> lDay;
+			inFile >> hDay;
 			
-			//cout << temp << endl;
-			highTemp->Fill(hDay);
+			// cout << year << " " << lDay << " " << hDay << endl;
+			highTemp->Fill(hDay);	
 			lowTemp->Fill(lDay);
+			
 			//i++;
 			//if(i > 20) break; 
 		}
-	
+		
 		// creating canvas
 	
 		TCanvas *c1 = new TCanvas("c1","Mean Temperatures",200,10,1000,500);
@@ -127,15 +139,24 @@ void plot(string filePath){
 		// that the generation works
 		TF1* fGaus = new TF1("fGaus", "gaus", -3, 3);
 		fGaus->SetParameters(1, 0, 1);
+		fGaus->SetLineColor(kBlack);
 		highTemp->Fit(fGaus);
 		
-		TF1 *g2    = new TF1("g2","gaus",0,182);
-		TF1 *g3    = new TF1("g3","gaus",183,365);
-		//TF1 *total = new TF1("total","gaus(0)+gaus(3)+gaus(6)",0,365);
-		lowTemp->Fit(g2,"R");
+		
+		TF1 *g2    = new TF1("g2","gaus",0,183);
+		TF1 *g3    = new TF1("g3","gaus",183,366);
+		
+		g2->SetLineColor(kBlack);
+		g2->SetLineStyle(2);
+		lowTemp->Fit(g2,"R+");
+		g3->SetLineColor(kBlack);
+		g3->SetLineStyle(2);
 		lowTemp->Fit(g3,"R+");
 		
-		cout << "Its uncertainty is " << fGaus->GetParError(1) << endl;
+		
+		
+		//cout << "Its uncertainty is " << fGaus->GetParError(1) << endl;
+		
 		TLegend *leg = new TLegend(0.75, 0.75, 0.95, 0.95, "", "NDC");
 		leg->SetFillStyle(0); //Hollow fill (transparent)
 		leg->SetBorderSize(0); //Get rid of the border
@@ -151,7 +172,7 @@ void plot(string filePath){
 		gStyle->SetOptTitle(0);
 		highTemp->SetLineColor(kRed);
 		// Save the canvas as a picture
-		c1->SaveAs("ColdWarm.jpg");
+		c1->SaveAs("ColdWarm.png");
 		
 	}	
 	
@@ -188,23 +209,23 @@ void plot(string filePath){
 			days.push_back(day);
 			years.push_back(year);
 			//i++;
-			//if(i > 20) break; 
+			//if(i > 200) break; 
 		}
 		
 		// Create Histogram
 		
-		TH3D* highTempHist= new TH3D("highTemp", "High Temperature;Year;Temp °C",365,0,365,years.size(),years[0],years[0]+years.size(),400,-30,40);
+		TH3D* highTempHist= new TH3D("highTemp", "High Temperature;Year;Temp °C",366,0,366,years.back()-years[0],years[0],years.back(),400,-30,40);
 		highTempHist->Sumw2();
 		//highTemp->SetMinimum(0);
 	
-		TH3D* lowTempHist= new TH3D("lowTemp", "Low Temperature;Year;Temp °C",365,0,365,years.size(),years[0],years[0]+years.size(),300,-30,40);
+		TH3D* lowTempHist= new TH3D("lowTemp", "Low Temperature;Year;Temp °C",366,0,366,years.back()-years[0],years[0],years.back(),300,-30,40);
 		lowTempHist->Sumw2();
 		//lowTemp->SetMinimum(0);
 		
 		for (unsigned int i=0; i <years.size(); i++){
 			
-			cout << days[i] << " " << years[i]<< " " << highTemperatures[i] << endl;
-			cout << days[i]<< " "  << years[i]<<  " " <<lowTemperatures[i] << endl;
+			//cout << days[i] << " " << years[i]<< " " << highTemperatures[i] << endl;
+			//cout << days[i]<< " "  << years[i]<<  " " <<lowTemperatures[i] << endl;
 			
 			highTempHist->Fill(days[i],years[i],highTemperatures[i]);
 			lowTempHist->Fill(days[i],years[i],lowTemperatures[i]);
@@ -228,8 +249,8 @@ void plot(string filePath){
 		leg->AddEntry(highTempHist, "Highest Temp", "p"); //Use object title, draw fill
 		leg->AddEntry(lowTempHist, "Lowest Temp", "p"); //Use custom title
 		
-		highTempHist->Draw("");
-		lowTempHist->Draw("same");
+		highTempHist->Draw("C");
+		lowTempHist->Draw("Csame");
 		leg->Draw(); //Legends are automatically drawn with "SAME"
 		highTempHist->SetTitle("Mean Temperature Per Day (all years)");
 		highTempHist->GetXaxis()->SetTitle("Days");
@@ -252,7 +273,7 @@ void plot(string filePath){
 		gStyle->SetPadLeftMargin(0.16);
 	
 		// Save the canvas as a picture
-		c1->SaveAs("Highest_and_Lowest_Temepratues.jpg");
+		c1->SaveAs("Highest_and_Lowest_Temepratues.png");
 	}
 	
 	else {
