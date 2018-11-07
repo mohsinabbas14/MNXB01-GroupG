@@ -487,7 +487,7 @@ int analyze(string type, string givenCity, string dir) {
 	  firstCity = false; 
 	} else { // Not First city. 
 	  // The date (without year) does not exist in the "totalsum" hist. 
-	  for(int i = 0; i < totalsum[0].size(); ++i) {
+	  for(unsigned int i = 0; i < totalsum[0].size(); ++i) {
 	    // If "totalsum"'s date passes newHist's data
 	    if(totalsum[0][i] >= newHist[0][k] &&
 	       totalsum[1][i] >= newHist[1][k] && totalsum[2][i] > newHist[2][k])
@@ -507,6 +507,7 @@ int analyze(string type, string givenCity, string dir) {
 	    }
 	  }	
 	} // else firstCity
+
       } // Going through "newHist"
     } // All cities have been done for. 
 
