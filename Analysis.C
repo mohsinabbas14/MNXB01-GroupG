@@ -43,6 +43,15 @@
  *       - Returns: 
  *         * int number of days.  
  *
+ *     * GetFirstAndLastYear(string dir, string sameJob)
+ *       - Description:
+ *         * Returns start year and ending year.    
+ *       - Arguments needed: 
+ *         * string directory path form current place (i.e. here/til/destination), 
+ *            containing filenames of the same histogram type and 
+ *       - Returns: 
+ *         * vector<int> 
+ *
  *     * getdir(string dir, vector<string> &files)
  *       - Description:
  *         * Adds all the file-names into the "files" vector, from the given directory path. 
@@ -58,8 +67,7 @@
  *           Columns in file: 1:date | 2:<temperature>
  *       - Arguments needed: 
  *         * string directory path form current place (i.e. here/til/destination), 
- *           vector<string> containing filenames of the same histogram type and 
- *           (empty) vector< vector<double> > that will be used to fill the file.  
+ *           filename and (empty) vector< vector<double> > that will be used to fill the file.  
  *       - Returns: 
  *         * int: 0 if done, 1 if something went wrong.
  *
@@ -70,8 +78,7 @@
  *           Columns in file: 1:year | 2:day(lowest) | 3:day(highest)
  *       - Arguments needed: 
  *         * string directory path form current place (i.e. here/til/destination), 
- *           vector<string> containing filenames of the same histogram type and 
- *           (empty) vector< vector<double> > that will be used to fill the file. 
+ *           filename and (empty) vector< vector<double> > that will be used to fill the file. 
  *       - Returns: 
  *         * int: 0 if done, 1 if something went wrong.
  *
@@ -81,8 +88,7 @@
  *           Columns in file: 1:day | 2:H | 3:L | 4:year
  *       - Arguments needed: 
  *         * string directory path form current place (i.e. here/til/destination), 
- *           vector<string> containing filenames of the same histogram type and 
- *           (empty) vector< vector<double> > that will be used to fill the file.
+ *           filename and (empty) vector< vector<double> > that will be used to fill the file.
  *       - Returns: 
  *         * int: 0 if done, 1 if something went wrong.
  *
@@ -212,7 +218,7 @@ vector<int> dateToInts(string strToSplit) {
 }
 
 
-int calcHistmT(string dir, string &sameJob, vector< vector<double> > &newHist) 
+int calcHistmT(string dir, string sameJob, vector< vector<double> > &newHist) 
 {
   string direction = dir + sameJob; 
   ifstream input(direction.c_str());
@@ -249,20 +255,20 @@ int calcHistmT(string dir, string &sameJob, vector< vector<double> > &newHist)
 	nrOfMeasurements += 1;
       }
     } // Entire file
-
+  /*
   // Deleting file. 
   if( remove(direction.c_str()) != 0) { 
   cout << "Error deleting file" << endl;
   return 1;
- } else {
+  } else {
   cout << "File successfully deleted" << sameJob << endl;
-  //  sameJob.erase(); 
   }  
+  */
   return 0; 
 }
 
 
-int calcHistlH(string dir, string &sameJob, vector< vector<double> > &newHist) 
+int calcHistlH(string dir, string sameJob, vector< vector<double> > &newHist) 
 { 
   string direction = dir + sameJob;  
   ifstream input(direction.c_str());
@@ -335,13 +341,12 @@ int calcHistlH(string dir, string &sameJob, vector< vector<double> > &newHist)
     return 1;
   } else {
     cout << "File successfully deleted " << sameJob << endl;
-    sameJob.erase(); 
   }  
   return 0; 
 }
 
 
-int calcHistfT(string dir, string &sameJob, vector< vector<double> > &newHist) 
+int calcHistfT(string dir, string sameJob, vector< vector<double> > &newHist) 
 {
   string direction = dir + sameJob; 
   ifstream input(direction.c_str());
@@ -388,11 +393,37 @@ int calcHistfT(string dir, string &sameJob, vector< vector<double> > &newHist)
     return 1;
   } else {
     cout << "File successfully deleted " <<  sameJob << endl; 
-    sameJob.erase(); 
   }  
   return 0; 
 }
 
+vector<int> GetFirstAndLastYear(string dir, string sameJob) 
+{
+  string direction = dir + sameJob; 
+  ifstream input(direction.c_str());
+  string line;
+  bool firstTime = true; 
+  vector<int> years;
+  int maxYear = 0; 
+  // Goes through the entire file 
+  while (getline(input, line)) 
+    {
+      // Converts line to 3. 
+      std::istringstream iss(line);
+      string date, time;
+      double temp;
+      iss >> date >> time >> temp;	 
+      vector<int> yearMonthDay = dateToInts(date);
+      if(firstTime)
+	years.push_back(yearMonthDay[0]);
+      firstTime = false; 
+      if(yearMonthDay[0] > maxYear)
+	maxYear = yearMonthDay[0];
+    } // Entire file
+  years.push_back(maxYear);
+
+  return years; 
+}
 
 
 // Status: See if compile in ROOT
@@ -439,9 +470,6 @@ int analyze(string type, string givenCity, string dir) {
     return 1; 
   }
 
-  // Lets call the columns x, y, z, w  
-  vector< vector<double> > newHist(4, vector< double >()); 
-
   // Assign new file name. 
   string newfileName;
   string name = sameJobs[0];
@@ -456,60 +484,35 @@ int analyze(string type, string givenCity, string dir) {
   newfileName = dir + name;
   ofstream ofsNewHist(newfileName.c_str());
 
+
+ 
+  vector< vector<double> > newHist(4, vector< double >()); 
   // Calculate the mean temperaure over the entire country. 
-  vector< vector<double> > totalsum(4, vector< double >());
-  vector<int> numberofCities;
+  vector<int> years = GetFirstAndLastYear(dir, sameJobs[0]);
+  int nrOfYear = years.at(1)-years.at(0)+1;
+  // Initialize 3D vector with 0, [year,month,day]
+  vector< vector< vector<double> > > totalsum(nrOfYear, vector<vector<double> >(12, vector< double >(31,0)));
+  vector< vector< vector<double> > > numberofCities(nrOfYear, vector<vector<double> >(12, vector< double >(31,0)));
   bool firstCity = true; 
+
   switch(type.at(0)) {
   case 'm' : 
-    cout << "Calculating data for mT histogram" << endl; 
+
     for(unsigned int icity = 0; icity < sameJobs.size(); ++icity) {
       // Calc for the city.
       calcHistmT(dir, sameJobs[icity], newHist);
-
       // The dates of measurement in a city
       for(unsigned int k = 0; k < newHist[0].size(); ++k) {
-	if(firstCity) {
-	  totalsum[0].push_back(newHist[0][k]);	  
-	  totalsum[1].push_back(newHist[1][k]);	  
-	  totalsum[2].push_back(newHist[2][k]);	  
-	  totalsum[3].push_back(newHist[3][k]);
-	  numberofCities.push_back(1); 
-	} else { // Not First city. 
-	  // The date (without year) does not exist in the "totalsum" hist. 
-	  for(unsigned int i = 0; i < totalsum[0].size(); ++i) {
-	    // If "totalsum"'s date passes newHist's data
-	    if(totalsum[0][i] >= newHist[0][k] &&
-	       totalsum[1][i] >= newHist[1][k] && totalsum[2][i] > newHist[2][k])
-	      break; 
-
-	    // If the date does not exist, add it. 
-	    if(totalsum[0][i] != newHist[0][k] && 
-	       totalsum[1][i] != newHist[1][k] && totalsum[2][i] != newHist[2][k] ) { 
-	      totalsum[0].push_back(newHist[0][k]);	  
-	      totalsum[1].push_back(newHist[1][k]);	  
-	      totalsum[2].push_back(newHist[2][k]);	  
-	      totalsum[3].push_back(newHist[3][k]);
-	      numberofCities.push_back(1);
-	    } else { // add temp to that day. 
-	      totalsum[3][i] += newHist[3][k];
-	      numberofCities[i] += 1; 
-	    }
-	  }	
-	} // else firstCity
-
+	totalsum[newHist[0][k]-years.at(0)][newHist[1][k]-1][newHist[2][k]-1] += newHist[3][k];
+	numberofCities[newHist[0][k]-years.at(0)][newHist[1][k]-1][newHist[2][k]-1] += 1;
       } // Going through "newHist"
-      firstCity = false;
     } // All cities have been done for. 
 
-    // Calculate the mean temperature over all cities. 
-    for(unsigned int i = 0; i < totalsum[0].size(); ++i) {
-      totalsum[3][i] = totalsum[3][i]/numberofCities[i]; 
-    }
-
-    for(unsigned int k = 0; k < newHist[0].size(); ++k) { 	  
-      ofsNewHist <<totalsum[0][k]<<"-"<<totalsum[1][k]<<"-"<<totalsum[2][k]<<"  "<<totalsum[3][k]<< endl;
-    } // All subtitles
+    for(unsigned int y = 0; y < nrOfYear; ++y) 
+      for(unsigned int m = 0; m < 12; ++m) 
+	for(unsigned int d = 0; d < 31; ++d) 
+	  if(numberofCities[y][m][d] != 0) 
+	    ofsNewHist <<y+years.at(0)<<"-"<<m+1<<"-"<<d+1<<"  "<<totalsum[y][m][d]/numberofCities[y][m][d]<< endl;
     cout << "Done Calculating data for mT histogram" << endl; 
 
     break;
@@ -552,13 +555,13 @@ int main(int argc, char* argv[]) {
 
   // On which prefix word should the work be done on? 
   if(argc > 3) {
-  // Setting the path to the Analysis directory.  
-  if (string(argv[1]) != "X")
-    type = argv[1];
-  if (string(argv[2]) != "X")
-    givenCity = argv[2];
-  if (string(argv[3]) != "X")
-    dir = "./" + (string) argv[3] + "/";
+    // Setting the path to the Analysis directory.  
+    if (string(argv[1]) != "X")
+      type = argv[1];
+    if (string(argv[2]) != "X")
+      givenCity = argv[2];
+    if (string(argv[3]) != "X")
+      dir = "./" + (string) argv[3] + "/";
   }
 
   analyze(type, givenCity, dir);
