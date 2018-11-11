@@ -82,4 +82,5 @@ void readFile(string filePath, string begin, string end) {
 			outfile << helpString1 << " " << helpString2 << " " << helpString3 << endl;
 		}	
 	}
+	if(isInInterval == false) cout << "Those years does not seem to be in the data." << endl;
 }

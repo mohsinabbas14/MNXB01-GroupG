@@ -108,11 +108,9 @@ void plot(string filePath){
 		
 		TH1D* highTemp= new TH1D("highTemp", "Warmest Day;Day;Count",366,0,366);
 		highTemp->Sumw2();
-		//highTemp->SetMinimum(0);
 	
 		TH1D* lowTemp= new TH1D("lowTemp", "Coldest Day;Day;Count",366,0,366);
 		lowTemp->Sumw2();
-		//lowTemp->SetMinimum(0);
 	
 		//int i = 0;
 		while(inFile >> year) {
@@ -121,7 +119,8 @@ void plot(string filePath){
 			
 			// cout << year << " " << lDay << " " << hDay << endl;
 			highTemp->Fill(hDay);	
-			lowTemp->Fill(lDay);
+			if(lDay < 183) lowTemp->Fill(lDay+183);
+			else if(lDay > 183) lowTemp->Fill(lDay-183);
 			
 			//i++;
 			//if(i > 20) break; 
@@ -129,48 +128,50 @@ void plot(string filePath){
 		
 		// creating canvas
 	
-		TCanvas *c1 = new TCanvas("c1","Mean Temperatures",200,10,1000,500);
-
-		c1->SetFillColor(16);
-		c1->SetGrid();
+		TCanvas *c1 = new TCanvas("c1","Warmest and Coldest Days",200,10,1000,500);
 		
-		
-		// create 1d function that we will use to fit our generated data to ensure
-		// that the generation works
-		TF1* fGaus = new TF1("fGaus", "gaus", -3, 3);
-		fGaus->SetParameters(1, 0, 1);
-		fGaus->SetLineColor(kBlack);
-		highTemp->Fit(fGaus);
-		
-		
-		TF1 *g2    = new TF1("g2","gaus",0,183);
-		TF1 *g3    = new TF1("g3","gaus",183,366);
-		
-		g2->SetLineColor(kBlack);
-		g2->SetLineStyle(2);
-		lowTemp->Fit(g2,"R+");
-		g3->SetLineColor(kBlack);
-		g3->SetLineStyle(2);
-		lowTemp->Fit(g3,"R+");
-		
-		
-		
-		//cout << "Its uncertainty is " << fGaus->GetParError(1) << endl;
-		
-		TLegend *leg = new TLegend(0.75, 0.75, 0.95, 0.95, "", "NDC");
-		leg->SetFillStyle(0); //Hollow fill (transparent)
-		leg->SetBorderSize(0); //Get rid of the border
-		leg->AddEntry(highTemp, "Warmest Day", "l"); //Use object title, draw fill
-		leg->AddEntry(lowTemp, "Coldest Day", "l"); //Use custom title
-		highTemp->Draw();
-		lowTemp->Draw("SAME"); //Draw on top of the existing plot
-		leg->Draw(); //Legends are automatically drawn with "SAME"
-		highTemp->GetXaxis()->CenterTitle();
-		highTemp->GetYaxis()->CenterTitle();
 		gStyle->SetOptStat(0);
 		gStyle->SetOptFit(0);
 		gStyle->SetOptTitle(0);
+		c1->SetFillColor(16);
+		c1->SetGrid();
+		
+		// create 1d function that we will use to fit our generated data to ensure
+		// that the generation works
+		TF1* fGaus = new TF1("fGaus", "gaus", 0, 366);
+		fGaus->SetParameters(1, 0, 1);
+		fGaus->SetLineColor(kBlack);
+		
+		c1->Divide(2);
+		
+		c1->cd(1);
+		highTemp->Fit(fGaus);
+				
+		//cout << "Its uncertainty is " << fGaus->GetParError(1) << endl;
+		
+		TLegend *leg1 = new TLegend(0.65, 0.75, 0.90, 0.95, "", "NDC");
+		leg1->SetFillStyle(0); //Hollow fill (transparent)
+		leg1->SetBorderSize(0); //Get rid of the border
+		leg1->AddEntry(highTemp, "Warmest Day", "l");
+		highTemp->Draw();
+		leg1->Draw(); //Legends are automatically drawn with "SAME"
 		highTemp->SetLineColor(kRed);
+		highTemp->GetXaxis()->CenterTitle();
+		highTemp->GetYaxis()->CenterTitle();
+		
+		c1->cd(2);
+		lowTemp->Fit(fGaus);
+		TLegend *leg2 = new TLegend(0.65, 0.75, 0.90, 0.95, "", "NDC");
+		leg2->SetFillStyle(0); //Hollow fill (transparent)
+		leg2->SetBorderSize(0); //Get rid of the border
+		leg2->AddEntry(lowTemp, "Coldest Day", "l");
+		lowTemp->Draw();
+		leg2->Draw(); //Legends are automatically drawn with "SAME"
+		lowTemp->SetLineColor(kBlue);
+		lowTemp->GetXaxis()->CenterTitle();
+		lowTemp->GetYaxis()->CenterTitle();
+		
+		
 		// Save the canvas as a picture
 		c1->SaveAs("ColdWarm.png");
 		
