@@ -84,7 +84,7 @@
  *
  *     * calcHistfT(string dir, vector<string> &sameJob, vector< vector<double> > > &newHist) 
  *       - Description:
- *         * For a given city, find the highest and lowest temperature during the day for a given year.  
+ *         * For a given city, find the highest and lowest temperature during the day for a given year. 
  *           Columns in file: 1:day | 2:H | 3:L | 4:year
  *       - Arguments needed: 
  *         * string directory path form current place (i.e. here/til/destination), 
@@ -255,15 +255,15 @@ int calcHistmT(string dir, string sameJob, vector< vector<double> > &newHist)
 	nrOfMeasurements += 1;
       }
     } // Entire file
-  /*
+
   // Deleting file. 
   if( remove(direction.c_str()) != 0) { 
   cout << "Error deleting file" << endl;
   return 1;
   } else {
-  cout << "File successfully deleted" << sameJob << endl;
-  }  
-  */
+    cout << "File successfully deleted" << sameJob << endl;
+  } 
+
   return 0; 
 }
 
@@ -432,6 +432,7 @@ vector<int> GetFirstAndLastYear(string dir, string sameJob)
 // argv[3]: directory
 int analyze(string type, string givenCity, string dir) { 
   
+  dir = "./" + dir + "/";
   // Returns every file in given folder. 
   vector<string> files = vector<string>(); // All files in that directory. 
   getdir(dir,files); // Give folder name, returns files names. 
@@ -445,9 +446,9 @@ int analyze(string type, string givenCity, string dir) {
   // Saves all the datafiles with the given histogram type.
   vector<string> sameJobs; // mT, lH and fT
 
-  // Goes through "files", and returns datafiles (mT/lH/fT) with the given prefix.  
+  // Goes through "files", and returns datafiles.  
   for (unsigned int ifile = 0; ifile < files.size(); ++ifile) 
-    // Find all data files as they are the only ones that begins with mT, lH or fT.
+    // Find all data files as they are the only ones that begins with XXR
     if(files[ifile].at(2) == 'R') // Only use files that have been read.
       if(files[ifile].at(0) == 'X' && files[ifile].at(1) == 'X') { // Only specific datafile names. 
 
@@ -548,7 +549,6 @@ int analyze(string type, string givenCity, string dir) {
 // argv[2]: city (X if using mT, if you want all cities.) 
 // argv[3]: directory. Just the directory name: <foldername>, if it exist in current directory.  
 int main(int argc, char* argv[]) { 
-
   string type;
   string givenCity; 
   string dir = "./";  // Directory where the datafiles exist in.
@@ -563,8 +563,6 @@ int main(int argc, char* argv[]) {
     if (string(argv[3]) != "X")
       dir = "./" + (string) argv[3] + "/";
   }
-
   analyze(type, givenCity, dir);
-
   return 0; 
 }
