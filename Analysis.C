@@ -421,7 +421,6 @@ vector<int> GetFirstAndLastYear(string dir, string sameJob)
 	maxYear = yearMonthDay[0];
     } // Entire file
   years.push_back(maxYear);
-
   return years; 
 }
 
@@ -484,8 +483,6 @@ int analyze(string type, string givenCity, string dir) {
   // Create file
   newfileName = dir + name;
   ofstream ofsNewHist(newfileName.c_str());
-
-
  
   vector< vector<double> > newHist(4, vector< double >()); 
   // Calculate the mean temperaure over the entire country. 
@@ -494,7 +491,6 @@ int analyze(string type, string givenCity, string dir) {
   // Initialize 3D vector with 0, [year,month,day]
   vector< vector< vector<double> > > totalsum(nrOfYear, vector<vector<double> >(12, vector< double >(31,0)));
   vector< vector< vector<double> > > numberofCities(nrOfYear, vector<vector<double> >(12, vector< double >(31,0)));
-  bool firstCity = true; 
 
   switch(type.at(0)) {
   case 'm' : 
@@ -545,6 +541,30 @@ int analyze(string type, string givenCity, string dir) {
 }
 
 
+int uppsala(string dir) { 
+  string direction = dir + "XXRuppsala.dat"; 
+  ifstream input(direction.c_str());
+  string line;
+
+  // Create file
+  string newfileName = dir + "XXRuppsala2.dat";
+  ofstream ofsNewHist(newfileName.c_str());
+
+  // Goes through the entire file
+  while (getline(input, line)) 
+    {
+      // Converts line to 3. 
+      std::istringstream iss(line);
+      double year, month, day, temp, temp2, id; 
+      iss >> year >> month >> day >> temp >> temp2 >> id;	 
+      if(id == 1) 
+	ofsNewHist<<year<<"-"<<month<<"-"<<day<<"  "<<temp<<"  "<<temp2<< endl;
+
+    } // Entire file 
+  return 0;
+}
+
+
 // argv[1]: type of hist 
 // argv[2]: city (X if using mT, if you want all cities.) 
 // argv[3]: directory. Just the directory name: <foldername>, if it exist in current directory.  
@@ -563,6 +583,12 @@ int main(int argc, char* argv[]) {
     if (string(argv[3]) != "X")
       dir = "./" + (string) argv[3] + "/";
   }
-  analyze(type, givenCity, dir);
+
+  if(givenCity.compare("uppsala") == 0) {
+    uppsala(dir);
+    analyze(type, "uppsala2", dir);
+  } else
+    analyze(type, givenCity, dir);
+
   return 0; 
 }
